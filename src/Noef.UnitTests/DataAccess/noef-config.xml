@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<noefConfig xmlns="urn:noef-config-1.0">
+	<connectionString>data source=NoefTestDB.sdf;Password=password</connectionString>
+
+	<noefDistro>
+		<namespace>Noef.UnitTests.DataAccess</namespace>
+		<output>_Noef.cs</output>
+	</noefDistro>
+
+	<dal>
+		<className>TestDal</className>
+		<namespace>Noef.UnitTests.DataAccess</namespace>
+		<output>_Dal.cs</output>
+		<connectionStringName>NoefUnitTests</connectionStringName>
+	</dal>
+
+	<dtos>
+		<namespace>Noef.UnitTests.DataAccess</namespace>
+		<output>_Dtos.cs</output>
+	</dtos>
+
+	<metadata>
+		<namespace>Noef.UnitTests.DataAccess</namespace>
+		<output>_Metadata.Autogen.cs</output>
+	</metadata>
+
+	<relatedProperties>
+		<output>_relatedData.AutoGen.txt</output>
+	</relatedProperties>
+	
+	<databaseObjects>
+		<import dbName="User" />
+		<import dbName="Project" />
+		<import dbName="ProjectComment" />
+	</databaseObjects>
+
+	<relationships>
+		<!-- FKs for Project -->
+		<relationship fk="Project.OwnerID" pk="User.ID" principalPropertyName="User" dependentPropertyName="Project_s" />
+
+		<!-- FKs for ProjectComment -->
+		<relationship fk="ProjectComment.ProjectID" pk="Project.ID" principalPropertyName="Project" dependentPropertyName="Comments" />
+		<relationship fk="ProjectComment.UserID" pk="User.ID" principalPropertyName="User" dependentPropertyName="Comments" />
+	</relationships>
+</noefConfig>
+

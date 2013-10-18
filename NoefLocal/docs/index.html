@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Noef Beta Docs</title>
+
+	<!-- jquery proper (+ui) -->
+	<script type="text/javascript" src="http://maps.cbre.com/jquery/js/jquery-1.4.2.min.js"></script>
+	<script type="text/javascript" src="http://maps.cbre.com/jquery/js/jquery-ui-1.8.2.custom.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="http://maps.cbre.com/jquery/css/south-street-1.8.2/jquery-ui-1.8.2.custom.css" />
+
+	<!-- SuperFish menu -->
+	<script type="text/javascript" src="//maps.cbre.com/SuperfishMenu.Services/localMenu.js"></script>
+
+	<!-- Portal style -->
+	<link type="text/css" rel="stylesheet" href="http://maps.cbre.com/jquery/mc-global.css" />
+
+	<script type="text/javascript">
+		$(document).ready(function ()
+		{
+		});
+	</script>
+</head>
+
+<body>
+	<div>
+		<!-- HEADER -->
+		<div id="divHeader" class="CbTopNav">
+			<div class="w950 center" style="margin-bottom: 20px;">
+				<img id="imgHeader" class="fleft" src="http://maps.cbre.com/jquery/images/cbre_logo.gif" alt="CB Richard Ellis" style="margin-right: 20px;" />
+				<a class="fleft" href="../Default.aspx"><img id="imgMcHeader" src="http://maps.cbre.com/jquery/images/mc-logo.png" alt="Mapping Center" style="border-style:None;" /></a>
+				<img id="imgWorld" class="fright" src="http://maps.cbre.com/jquery/images/worldMap-lg.gif" />
+			</div>
+
+			<div class="clear"></div>
+
+			<!-- links... -->
+			<div class="w950 center">
+				<ul class="sf-menu">
+					<li><a href="index.html">Docs</a></li>
+				</ul>
+			</div>
+
+			<div class="clear"></div>
+		</div>
+
+		<!-- CONTENT -->
+		<div class="w950 center">
+
+<!-- ******************************************************************************** -->
+<!-- *** BEGIN NOEF DOCS CONTENT **************************************************** -->
+<!-- ******************************************************************************** -->
+
+<div class="bar lime-bar">
+	<h2>Noef Docs (BETA)</h2>
+	This is beta documentation on Noef (The No-Entity-Framework micro ORM)
+	
+	<br />
+	<br />
+	In this file
+	<ul>
+		<li><a href="#0.0-file-structure">0.0 - Your Project's File Structure</a></li>
+		<li><a href="#1.0-getting-noef">1.0 - Getting Noef</a></li>
+		<li>
+			<a href="#2.0-writing-your-noef-config-xml">2.0 - Writing your Noef config file</a>
+			<ul>
+				<li><a href="#2.1-your-noef-config-xml">2.1 - {ProjectName}.noef-config.xml</a></li>
+				<li><a href="#2.2-your-codegen-batch-file">2.2 - run-noef-codegen.bat</a></li>
+			</ul>
+		</li>
+		<li><a href="#3.0-creating-your-base-DAL-class">3.0 - Creating your base DAL class</a></li>
+		<li>
+			<a href="#4.0-creating-your-queries-classes">4.0 - Creating your "Queries" classes</a>
+			<ul>
+				<li><a href="#4.1-">4.1 - </a></li>
+			</ul>
+		</li>
+		<li><a href="#5.0-examples-in-our-repository">5.0 - Examples in our repository</a></li>
+	</ul>
+
+	Using the convenience methods in NoefDal
+	<br />
+	Using the CRUD helper methods
+	<br />
+	Working with untyped data (RawTable)
+	<br />
+	
+	
+</div>
+
+<br />
+
+<a name="0.0-file-structure"></a>
+<div class="bar lime-bar">
+	<a href="#0.0-file-structure"><h2>0.0 - Your Project's File Structure</h2></a>
+	For convenient reference, here is how we should layout out our solutions.
+	<ul>
+		<li>deploy/</li>
+		<li>docs/</li>
+		<li>
+			lib/ (any svn:externals should be here)
+			<ul>
+				<li>Noef/</li>
+				<li>RestCake/</li>
+				<li>etc</li>
+				<li>NOTE: Hopefully we'll be switching to some NuGet based thing soon, in which case we'll have a <strong>packages</strong> folder somewhere</li>
+			</ul>
+		</li>
+		<li>
+			src/
+			<ul>
+				<li>Awesome.DataAccess/<ul><li>Awesome.DataAccess.csproj</li></ul></li>
+				<li>Awesome.Dtos/</li>
+				<li>Awesome.Services/</li>
+				<li>Awesome.Web/</li>
+				<li>Awesome.sln</li>
+			</ul>
+		</li>
+		<li>
+			tools/ (it would be ok if this were omitted, and any tools were put in lib)
+		</li>
+	</ul>
+	No binaries (either dependent bins or deployable bins) should ever go under <strong>src/</strong>, because that's what we monitor to trigger CI builds.
+</div>
+
+<br />
+
+<a name="1.0-getting-noef"></a>
+<div class="bar lime-bar">
+	<a href="#1.0-getting-noef"><h2>1.0 - Getting Noef</h2></a>
+	In your project, set up an <strong>svn:external</strong> to
+	<a href="http://maps.cbre.com:8082/svn/3rdParty/NoefLocal/deploy/">http://maps.cbre.com:8082/svn/3rdParty/NoefLocal/deploy/</a>
+	<br />
+	If your project is not yet in Subversion, then just download the contents of that directory into a folder named "Noef" (in your "lib" folder).  It contains:
+	<ul>
+		<li>
+			AdoClassWriter/
+			<ul>
+				<li>AdoClassWriter.exe</li>
+				<li>AdoClassWriter.pdb</li>
+				<li>noef-config.xsd</li>
+			</ul>
+		</li>
+		<li>
+			Noef/
+			<ul>
+				<li>Noef.dll</li>
+				<li>Noef.pdb</li>
+			</ul>
+		</li>
+	</ul>
+
+	You can place the noef-config.xsd file in <strong>C:\Program Files\Microsoft Visual Studio 10.0\Xml\Schemas</strong> for Visual Studio to globally recognize the schema (this will give you intellisense when working on a Noef configuration file).
+	<br />
+	Your {ProjectName}.DataAccess project should be set up as a .Net 4 Class Library.  Add a reference to Noef.dll (Noef has no binary dependencies, so nothing else is distributed with it).
+	<br />
+	<strong>NOTE:</strong> We hope to soon move off of svn:externals usage, and start using NuGet.
+</div>
+
+<br />
+
+
+<a name="2.0-writing-your-noef-config-xml"></a>
+<div class="bar lime-bar">
+	<a href="#2.0-writing-your-noef-config-xml"><h2>2.0 - Writing your Noef config file (project.noef-config.xml)</h2></a>
+	If you are going to use Noef's AdoClassWriter.exe to automatically generate Dtos or Metadata for use in your DataAccess library, you'll need to create a noef config file.
+	In either your {ProjectName}.DataAccess or {ProjectName}.Dtos project (doesn't matter which, it's relevant to both), create 2 files:
+	<ul>
+		<li>{ProjectName}.noef-config.xml</li>
+		<li>run-noef-codegen.bat</li>
+	</ul>
+
+	<a name="2.1-your-noef-config-xml"></a>
+	<a href="#2.1-your-noef-config-xml"><h2>2.1 - {ProjectName}.noef-config.xml</h2></a>
+	Here is a basic template to start from:
+	<pre class="code">
+&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;noefConfig xmlns="urn:noef-config-1.0"&gt; &lt;!-- If the noef-config.xsd is in your C:\Program Files\Microsoft Visual Studio 10.0\Xml\Schemas folder, you'll have intellisense when editing this file --&gt;
+	&lt;connectionString&gt;Data Source=mc-sql2\sql2008;Initial Catalog=YOUR_DATABASE;Integrated Security=True;MultipleActiveResultSets=True&lt;/connectionString&gt;
+
+	&lt;dtos&gt;
+		&lt;namespace&gt;CBMapping.YOUR_PROJECT.Dtos&lt;/namespace&gt;
+		&lt;output&gt;_Dtos.AutoGen.cs&lt;/output&gt;
+	&lt;/dtos&gt;
+
+	&lt;metadata&gt;
+		&lt;namespace&gt;CBMapping.YOUR_PROJECT.DataAccess&lt;/namespace&gt;
+		&lt;output&gt;..\YOUR_PROJECT.DataAccess\_Metadata.Autogen.cs&lt;/output&gt;
+	&lt;/metadata&gt;
+
+	&lt;relatedProperties&gt;
+		&lt;output&gt;_relatedData.AutoGen.txt&lt;/output&gt;
+	&lt;/relatedProperties&gt;
+	
+	&lt;databaseObjects&gt;
+		&lt;import dbName="TableParent" /&gt;
+		&lt;import dbName="TableChild" /&gt;
+		&lt;import dbName="LogTable" /&gt;
+		&lt;import dbName="ErrorTable" /&gt;
+		&lt;import dbName="User" /&gt;
+		&lt;import dbName="Mapper" /&gt;
+		&lt;import dbName="Etc" /&gt;
+	&lt;/databaseObjects&gt;
+
+	&lt;relationships&gt;
+		&lt;!-- FKs for TableParent --&gt;
+		&lt;relationship fk="TableChild.ParentID" pk="TableParent.ID" principalPropertyName="Parent" dependentPropertyName="Children" /&gt;
+
+		&lt;!-- Example of one-to-one relationship.  Note the cardinality="one". This would be used when a PK is also a FK, which creates a one-to-one in SQL. --&gt;
+		&lt;relationship fk="Mapper.Mcuid" pk="User.Mcuid" principalPropertyName="User" dependentPropertyName="Mapper" cardinality="one" /&gt;
+	&lt;/relationships&gt;
+&lt;/noefConfig&gt;
+	</pre>
+	Note that the paths for <strong>&lt;output&gt;</strong> elements should be relative to where you place your noef config file and batch file. In this example, they would be in the Dtos folder, meaning the dtos and relatedProperties outputs would go in the Dtos folder (since only plain filenames are provided).  The metadata would go up a folder, into the {ProjectName}.DataAccess folder.
+
+	<br />
+	<br />
+
+	Most of the file is self explanatory.  The <strong>&lt;databaseObjects&gt;</strong> section is where you list the database tables you want to automatically create Dto types (and metadata) for.
+
+	<br />
+	<br />
+
+	The <strong>&lt;relationships&gt;</strong> section is a little more confusing.  Each entry will create a 2-way relationship (either one-to-many or one-to-one, depending on the cardinality).
+	The relationship will be created in the generated DTO classes.  In the above case, the TableParent class would have an IList&lt;TableChild&gt; property named Children, and the TableChild class would have a TableParent property named Parent.
+	<br />
+	Because these relationship entries can be confusing to write up in your noef config file, the AdoClassWriter.exe can create them for you, based on the foreign keys in your database.
+	<br />
+	<pre class="code">
+..\lib\Noef\AdoClassWriter\AdoClassWriter.exe --settings={ProjectName}.noef-config.xml --type=NoefRelationshipsConfig
+	</pre>
+	<br />
+	This will output to stdout all of the <strong>&lt;relationship&gt;</strong> elements you can put in your noef config file, to create the relationships in your DTO classes, based on the FKs in your database.  However, if you have semantic relationships that are not enforced in the database with actual FKs, you'll need to type those &lt;relationship&gt; entries manually.
+
+	<br />
+	<br />
+
+	<a name="2.2-your-codegen-batch-file"></a>
+	<a href="#2.2-your-codegen-batch-file"><h2>2.2 - run-noef-codegen.bat</h2></a>
+	A simple batch file that will run the AdoClassWriter.exe, pointing it to your noef config file.
+	<br />
+	Example:
+	<br />
+	<pre class="code">
+..\lib\Noef\AdoClassWriter\AdoClassWriter.exe --settings={ProjectName}.noef-config.xml --type=Dtos,RelatedProperties
+pause
+	</pre>
+	That will cause all of your &lt;output&gt; files to be created (or at least for whichever output types you specify in <strong>--type=</strong>).
+</div>
+
+<br />
+
+<a name="3.0-creating-your-base-DAL-class"></a>
+<div class="bar lime-bar">
+	<a href="#3.0-creating-your-base-DAL-class"><h2>3.0 - Creating your base DAL class</h2></a>
+	There is a base DAL class in Noef named <strong>NoefDal</strong>.  In your {ProjectName}.DataAccess project, just created a file named {ProjectName}Dal.cs, and add 2 classes like this:
+	<pre class="code">
+using System;
+using ProjectName.DataAccess;
+using ProjectName.Dtos;
+using Noef;
+
+namespace CBMapping.ProjectName
+{
+	/// &lt;summary&gt;
+	/// We have to create an "Impl" implementation class for the Dal class that extends NoefDal, because we need another DAL class
+	/// that extends PerRequestSingleton (of this type, the Impl class).  .NET uses single inheritance, so we need 2 classes.
+	/// &lt;/summary&gt;
+	public class ProjectNameDalImpl : NoefDal
+	{
+		public override string ConnectionStringName
+		{
+			get { return "ProjectName_ConnectionStringName"; }
+		}
+	}
+
+
+	/// &lt;summary&gt;
+	/// The singleton Dal class, which gives access to the single instance of the dal "Impl" (implementation) class that extends NoefDal.
+	/// &lt;/summary&gt;
+	public class ProjectNameDal : PerRequestSingletonA&lt;ProjectNameDalImpl&gt;
+	{
+		// Put in other custom DAL code here.  Something to access the current MCUID based on the forms auth cookie,
+		// extra connection string names or methods to return alternate SqlConnections (using NoefDal.GetConnection() of course), etc.
+		// Anything you want in your DAL class.
+	}
+}
+	</pre>
+</div>
+
+<br />
+
+<a name="4.0-creating-your-queries-classes"></a>
+<div class="bar lime-bar">
+	<a href="#4.0-creating-your-queries-classes"><h2>4.0 - Creating your "Queries" classes.</h2></a>
+	The best way to use Noef is to NOT do object oriented programming in the traditional sense. Leave your entity classes as plain DTOs that just represent the data as it in in the database.
+	Don't put application logic in the DTO classes (so no methods, other than a few constructors for convenience).
+	In your {ProjectName}.DataAccess project, create static classes like "UserQueries" that have methods to operate on your DTO classes.
+	If you'd rather put the logic in your DTO classes, that's alright too, but keep in mind that sometimes you'll need static methods, since you won't always have a DTO object.  Sometimes
+	you'll only have an ID (relational data, remember?).  So rather than doing <span class="code">userDto.Delete()</span>, you'll do <span class="code">UserQueries.Delete(userID)</span>
+	(if you have a separate "Queries" class) or <span class="code">User.Delete(userID)</span> if you put the logic in your DTO classes.  There's no reason to fetch a user record from the db,
+	when all you need for certain operations is the ID.
+
+	<br />
+	<br />
+
+Here are some basic examples of using the TableMetadata and NoefDal helper methods to execute queries and hydrate them into results. If you want to see actual examples in our code, see
+<a href="#5.0-examples-in-our-repository">5.0 - Examples in our repository</a>.
+	<pre class="code">
+using System;
+using Noef;
+using ProjectName.Dtos;
+using ProjectName.DataAccess;
+
+namespace CBMapping.ProjectName
+{
+	public static class UserQueries
+	{
+		//
+		// Using CRUD helper methods in TableMetadata
+		//
+
+		// Using TableMetadata.Select&lt;T&gt;()
+		public static User GetUser_method1(int id)
+		{
+			User user = TableMetadata.Select&lt;User&gt;(ProjectNameDal.GetConnection(), "UserID", id);
+			return user;
+		}
+
+		// Using TableMetadata.Select&lt;T&gt;() (overload that takes a where clause. Make sure the string is safe, as this method doesn't do any injection checks)
+		public static User GetActiveUsers()
+		{
+			IList&lt;User&gt; users = TableMetadata.Select&lt;User&gt;(ProjectNameDal.GetConnection(), "IsActive = 1", null);
+		}
+
+		// Using TableMetadata.Select&lt;T&gt;() (same overload, this time using the Action to populate a param in the where clause)
+		public static IList&lt;User&gt; SearchUsers(string lname)
+		{
+			// Note that this overload with the WHERE clause cannot do ordering.
+			IList&lt;User&gt; users = TableMetadata.Select&lt;User&gt;(ProjectNameDal.GetConnection(), "LName LIKE @lname", cmd =&gt; cmd.AddParam("@lname", "%" + lname + "%"));
+			return users;
+		}
+
+		//
+		// Using convenience methods in NoefDal (preferred)
+		//
+
+		public static User GetUser_method2(int id)'
+		{
+			string sql = "SELECT UserID, FName, LName, Etc FROM dbo.Users WHERE UserID = @userID";
+			User user = SingleOrDefault&lt;User&gt;(sql, new { userID = id });
+			return user;
+		}
+
+		public static IList&lt;User&gt; GetActiveUsers2()
+		{
+			string sql = "SELECT UserID, FName, LName, Etc FROM dbo.Users WHERE IsActive = 1";
+			IList&lt;User&gt; users = Query&lt;User&gt;(sql);
+			return users;
+		}
+
+		public static IList&lt;User&gt; SearchUsers2(string lname)
+		{
+			string sql = "SELECT UserID, FName, LName, Etc FROM dbo.Users WHERE LName LIKE @lname ORDER BY LName";
+			IList&lt;User&gt; users = Query&lt;User&gt;(sql, new { lname = lname });
+			return users;
+		}
+
+		//
+		// Working with untyped data (selecting results that you don't have DTO types to represent - either one off queries or tables you don't want to import)
+		//
+
+		public RawTable GetUserStats(DateTime dtStart, DateTime dtEnd)
+		{
+			string sql = @"
+SELECT
+	u.UserID,
+	u.LName,
+	u.FName,
+	COUNT(*) AS NumLogins
+FROM
+	dbo.Users u
+	INNER JOIN dbo.Logins l
+	ON u.UserID = l.LoginID
+WHERE
+	l.LoginDate BETWEEN @dateStart AND @dateEnd
+GROUP BY
+	u.UserID,
+	u.LName,
+	u.FName
+ORDER BY
+	u.LName
+HAVING
+	COUNT(*) &gt; 0
+";
+			RawTable table = Query(sql, new { dateStart = dtStart, dateEnd = dtEnd });
+			return table;
+		}
+		
+	}
+}
+	</pre>
+
+</div>
+
+<br />
+
+<a name="5.0-examples-in-our-repository"></a>
+<div class="bar lime-bar">
+	<a href="#5.0-examples-in-our-repository"><h2>5.0 - Examples in our repository</h2></a>
+
+	"Queries" classes for Pow: <a href="http://maps.cbre.com:8082/svn/CBMapping/Pow_Sam/src/Pow.DataAccess/Queries/">http://maps.cbre.com:8082/svn/CBMapping/Pow_Sam/src/Pow.DataAccess/Queries/</a>
+	<br />
+	<br />
+
+	TODO: Add ErrorLogger, Sentry, and SuperfishMenu when they are all ported to Noef (merged back into their trunks).
+
+	<br />
+	TODO: Add MCP once it's checked in.
+
+</div>
+
+<br />
+
+
+<!-- ******************************************************************************** -->
+<!-- *** END NOEF DOCS CONTENT ****************************************************** -->
+<!-- ******************************************************************************** -->
+
+		<!-- FOOTER -->
+		<div id="divFooter">
+			<div class="w950 center">
+				<a href="mailto:mos@cbre.com">Contact Us</a>
+				<a href="mailto:mos@cbre.com?subject=Feedback">Feedback</a>
+				<br />
+				&copy;2010 CB Richard Ellis Mapping Services. All rights reserved.
+			</div>
+		</div>
+
+	</div>
+</body>
+</html>
+

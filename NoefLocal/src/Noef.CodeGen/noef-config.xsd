@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+	id="noef-config-1.1"
+	targetNamespace="urn:noef-config-1.1"
+	xmlns="urn:noef-config-1.1"
+	xmlns:mstns="urn:noef-config-1.1"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified"
+>
+	<!-- This is the structure of the document -->
+	<xs:element name="noefConfig">
+		<xs:complexType>
+			<xs:all>
+				<xs:element minOccurs="1" maxOccurs="1" ref="appConfig" />
+				<xs:element minOccurs="0" maxOccurs="1" ref="noef" />
+				<xs:element minOccurs="1" maxOccurs="1" ref="dal" />
+				<xs:element minOccurs="0" maxOccurs="1" ref="dtos" />
+				<xs:element minOccurs="0" maxOccurs="1" ref="metadata" />
+				<xs:element minOccurs="0" maxOccurs="1" ref="tables" />
+				<xs:element minOccurs="0" maxOccurs="1" ref="relationships" />
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+
+	<!-- These are type declarations (just for attributes) that are used for the above document structure -->
+	<xs:element name="appConfig" type="xs:string" />
+	<xs:element name="class" type="xs:string" />
+	<xs:element name="connection" type="xs:string" />
+	<xs:element name="namespace" type="xs:string" />
+
+	<xs:element name="noef">
+		<xs:complexType>
+			<xs:all>
+				<xs:element ref="namespace" minOccurs="0" maxOccurs="1" />
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="dal">
+		<xs:complexType>
+			<xs:all>
+				<xs:element ref="class" minOccurs="1" maxOccurs="1" />
+				<xs:element ref="namespace" minOccurs="1" maxOccurs="1" />
+				<xs:element ref="connection" minOccurs="1" maxOccurs="1" />
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="dtos">
+		<xs:complexType>
+			<xs:all>
+				<xs:element ref="namespace" minOccurs="0" maxOccurs="1" />
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="metadata">
+		<xs:complexType>
+			<xs:all>
+				<xs:element ref="namespace" minOccurs="0" maxOccurs="1" />
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="tables">
+		<xs:complexType>
+			<xs:sequence minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="import" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="import">
+		<xs:complexType>
+			<xs:sequence minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="column" />
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="class" type="xs:string" />
+			<xs:attribute name="baseClass" type="xs:string" />
+			<xs:attribute name="connection" type="xs:string" />
+			<xs:attribute name="database" type="xs:string" />
+			<xs:attribute name="schema" type="xs:string" default="dbo" />
+			<xs:attribute name="excludedColumns" type="xs:string" />
+			<xs:attribute name="excludedProperties" type="xs:string" />
+			<xs:attribute name="defaultConstructor" type="xs:boolean" default="true" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="column">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required" />
+			<xs:attribute name="propName" type="xs:string" />
+			<xs:attribute name="type" type="xs:string" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="relationships">
+		<xs:complexType>
+			<xs:sequence minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="relationship" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="relationship">
+		<xs:complexType>
+			<xs:attribute name="fk" type="xs:string" use="required" />
+			<xs:attribute name="pk" type="xs:string" use="required" />
+			<xs:attribute name="principalPropertyName" type="xs:string" />
+			<xs:attribute name="dependentPropertyName" type="xs:string" />
+			<xs:attribute name="cardinality">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="one" />
+						<xs:enumeration value="many" />
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="dependentSequenceType" default="IList">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="IList" />
+						<xs:enumeration value="List" />
+						<xs:enumeration value="Array" />
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>

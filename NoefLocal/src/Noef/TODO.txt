@@ -1,0 +1,5 @@
+﻿Added these properties: Implement their usage:
+
+TODO: Decide which of the following 2 options I like better for setting up a SqlCommand's params in an otherwise generic method:
+	1. Action<SqlCommand> beforeExecute (used in some places in TableMetadata, and in consuming libraries (Pow))
+

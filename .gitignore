@@ -1,6 +1,6 @@
 # This project
-[Dd]eploy/
-[Ss]rc/Noef.CodeGen/NoefSrc.zip
+deploy/
+src/Noef.CodeGen/NoefSrc.zip
 
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 [Bb]in/
@@ -110,3 +110,4 @@ Generated_Code #added for RIA/Silverlight projects
 _UpgradeReport_Files/
 Backup*/
 UpgradeLog*.XML
+

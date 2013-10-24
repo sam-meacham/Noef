@@ -677,8 +677,8 @@ namespace Noef
 			string propName = ReflectionHelper.GetPropertyName(propToHydrate);
 
 			// We know the column names we're joining on between the 2 tables, now get refs to the appropriate ColumnMetadata objects
-			//ColumnMetadata colMeta1 = t1.Columns.Single(c => String.Equals(c.Name, col1, StringComparison.InvariantCultureIgnoreCase));
-			//ColumnMetadata colMeta2 = t2.Columns.Single(c => String.Equals(c.Name, col2, StringComparison.InvariantCultureIgnoreCase));
+			//ColumnMetadata colMeta1 = t1.Columns.Single(c => String.Equals(c.Name, col1, StringComparison.OrdinalIgnoreCase));
+			//ColumnMetadata colMeta2 = t2.Columns.Single(c => String.Equals(c.Name, col2, StringComparison.OrdinalIgnoreCase));
 
 			// Default values for where and orderBy if none were provided
 			if (String.IsNullOrWhiteSpace(where))
@@ -873,7 +873,7 @@ ORDER BY
 			foreach(ColumnMetadata col in tmeta.Columns)
 			{
 				// Do not try to update the PK column (sanity, please).
-				if (String.Equals(col.Name, pkColumn, StringComparison.InvariantCultureIgnoreCase))
+				if (String.Equals(col.Name, pkColumn, StringComparison.OrdinalIgnoreCase))
 					continue;
 				// Skip columns the user explicitly said to exclude.
 				if (excluded.Contains(col.Name, StringComparer.InvariantCultureIgnoreCase))
@@ -904,7 +904,7 @@ ORDER BY
 				foreach (ColumnMetadata col in tmeta.Columns)
 				{
 					// Don't add the pk column, it's already been added.
-					if (String.Equals(col.Name, pkColumn, StringComparison.InvariantCultureIgnoreCase))
+					if (String.Equals(col.Name, pkColumn, StringComparison.OrdinalIgnoreCase))
 						continue;
 					if (excluded.Contains(col.Name, StringComparer.InvariantCultureIgnoreCase))
 						continue;
@@ -944,7 +944,7 @@ ORDER BY
 			TableMetadata tmeta = TableMetadata.For<T>();
 			foreach (string namedColumn in columns)
 			{
-				if (!tmeta.Columns.Any(col => String.Equals(col.Name, namedColumn, StringComparison.InvariantCultureIgnoreCase)))
+				if (!tmeta.Columns.Any(col => String.Equals(col.Name, namedColumn, StringComparison.OrdinalIgnoreCase)))
 					throw new Exception("Column \"" + namedColumn + "\" does not exist in table " + tmeta.Name);
 			}
 		}
@@ -1028,7 +1028,7 @@ ORDER BY
 				foreach (ColumnMetadata col in tmeta.Columns)
 				{
 					// Don't add the pk column, it's already been added
-					if (String.Equals(col.Name, pkColumn, StringComparison.InvariantCultureIgnoreCase))
+					if (String.Equals(col.Name, pkColumn, StringComparison.OrdinalIgnoreCase))
 						continue;
 					if (!whitelist.Contains(col.Name, StringComparer.InvariantCultureIgnoreCase))
 						continue;
@@ -1186,7 +1186,7 @@ ORDER BY
 			using (IDbCommand cmd = CreateCommand<T>(sql, null, cn, CommandType.Text, tx, timeout))
 			{
 				// Find the column the user indicated by name
-				ColumnMetadata col = tmeta.Columns.First(c => String.Equals(c.Name, pkColumn, StringComparison.InvariantCultureIgnoreCase));
+				ColumnMetadata col = tmeta.Columns.First(c => String.Equals(c.Name, pkColumn, StringComparison.OrdinalIgnoreCase));
 				object pkValue = col.Property.GetValue(obj);
 				cmd.AddParam("@" + pkColumn, pkValue);
 				if (beforeExecute != null)

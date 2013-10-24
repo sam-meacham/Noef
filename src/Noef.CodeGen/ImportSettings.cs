@@ -27,6 +27,7 @@ namespace Noef.CodeGen
 		public string MetadataNamespace { get; set; }
 		public string DalNamespace { get; set; }
 		public string DalClassName { get; set; }
+		public string DalBaseClassName { get; set; }
 
 		// Database mapping info
 		/// <summary>
@@ -52,6 +53,7 @@ namespace Noef.CodeGen
 			DalNamespace = "YourNamespace";
 			NoefNamespace = null; // will default to the DAL's namespace
 			DalClassName = "YourDal";
+			DalBaseClassName = "NoefDal";
 			DtoNamespace = null; // will default to the DAL's namespace
 			MetadataNamespace = null;  // will default to the DAL's namespace
 			TableMappings = new List<TableMapping>();
@@ -128,7 +130,14 @@ namespace Noef.CodeGen
 			// <dal>
 			if (dal == null)
 				throw new Exception("The <dal> section is required!");
-			DalClassName = dal.Element(ns + "class").ValueOrNull() ?? DalClassName;
+			var classElement = dal.Element(ns + "class");
+			DalClassName = classElement.ValueOrNull() ?? DalClassName;
+			
+			// see if they need a specific base class that's already subclassing NoefDal
+			// This will also signal that a Noef distribution should not be generated.
+			if (classElement != null)
+				DalBaseClassName = classElement.Attribute("base").ValueOrNull() ?? DalBaseClassName;
+
 			DalNamespace = dal.Element(ns + "namespace").ValueOrNull() ?? DalNamespace;
 			DalConnectionName = dal.Element(ns + "connection").ValueOrNull() ?? DalConnectionName;
 
@@ -188,7 +197,7 @@ namespace Noef.CodeGen
 						: new TableMapping(tableName, database, schema, className, baseClass, excludedColumns, excludedProperties);
 
 					// Get the metadata from sql server and populate the Columns list
-					if (!String.Equals(connection, DalConnectionName, StringComparison.InvariantCultureIgnoreCase))
+					if (!String.Equals(connection, DalConnectionName, StringComparison.OrdinalIgnoreCase))
 					{
 						// this table uses a different connection
 						mapping.ConnectionName = connection;
@@ -205,7 +214,7 @@ namespace Noef.CodeGen
 							cn2.Close();
 						}
 					}
-					else if (!String.Equals(database, cn.Database, StringComparison.InvariantCultureIgnoreCase))
+					else if (!String.Equals(database, cn.Database, StringComparison.OrdinalIgnoreCase))
 					{
 						// The databases are different, but the current table can still use the main connection
 						mapping.TableName = database + "." + mapping.Schema + "." + tableName;
@@ -227,7 +236,7 @@ namespace Noef.CodeGen
 						string colName = elCol.Attribute("name").ValueOrNull();
 						if (colName == null)
 							throw new Exception("If you use a <column> element under your <import> element, the \"name\" attribute is required");
-						Column columnMeta = mapping.Columns.SingleOrDefault(c => String.Equals(c.ColumnName, colName, StringComparison.InvariantCultureIgnoreCase));
+						Column columnMeta = mapping.Columns.SingleOrDefault(c => String.Equals(c.ColumnName, colName, StringComparison.OrdinalIgnoreCase));
 						if (columnMeta == null)
 							throw new Exception("Column not found: " + tableName + "." + colName);
 						string propName = elCol.Attribute("propName").ValueOrNull();
@@ -246,7 +255,6 @@ namespace Noef.CodeGen
 				}
 				cn.Close();
 			}
-			
 
 			// Now that we have the list of tables to import, let's populate our Tables and FkInfo collections
 			// (They are required for processing the relationship correctly, which we do next)
@@ -306,7 +314,7 @@ namespace Noef.CodeGen
 			if (m_outputTypes.Contains(OutputType.RelationshipsConfig))
 				generators.Add(new RelationshipsConfigGenerator(fn_getWriter("_fks.txt"), this));
 			if (m_outputTypes.Contains(OutputType.NoefDistro))
-				generators.Add(new NoefDistroGenerator(fn_getWriter("_Noef.cs"), NoefNamespace));
+				generators.Add(new NoefDistroGenerator(fn_getWriter("_Noef.cs"), this, NoefNamespace));
 			if (m_outputTypes.Contains(OutputType.Dal))
 				generators.Add(new DalGenerator(fn_getWriter("_Dal.cs"), this));
 			if (m_outputTypes.Contains(OutputType.Metadata))

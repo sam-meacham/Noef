@@ -51,12 +51,12 @@ namespace Noef.CodeGen
 			string[] fkParts = Fk.Trim().Split(new [] {'.'});
 
 			string pTableName = pkParts[0].Trim();
-			PrincipalTable = mappings.Single(m => String.Equals(m.TableName, pTableName, StringComparison.InvariantCultureIgnoreCase));
+			PrincipalTable = mappings.Single(m => String.Equals(m.TableName, pTableName, StringComparison.OrdinalIgnoreCase));
 			PrincipalTable.AsPrincipal.Add(this);
 			PrincipalKey = pkParts[1].Trim();
 
 			string dTableName = fkParts[0].Trim();
-			DependentTable = mappings.Single(m => String.Equals(m.TableName, dTableName, StringComparison.InvariantCultureIgnoreCase));
+			DependentTable = mappings.Single(m => String.Equals(m.TableName, dTableName, StringComparison.OrdinalIgnoreCase));
 			DependentTable.AsDependent.Add(this);
 			DependentKey = fkParts[1].Trim();
 
@@ -93,18 +93,18 @@ namespace Noef.CodeGen
 			FkInfo = fks.FirstOrDefault(fk =>
 				(
 					// format: PrincipalTable.PK = DependentTable.FK
-					String.Equals(fk.PrincipalTable, PrincipalTable.TableName, StringComparison.InvariantCultureIgnoreCase)
-					&& String.Equals(fk.PrincipalColumn, PrincipalKey, StringComparison.InvariantCultureIgnoreCase)
-					&& String.Equals(fk.DependentTable, DependentTable.TableName, StringComparison.InvariantCultureIgnoreCase)
-					&& String.Equals(fk.DependentColumn, DependentKey, StringComparison.InvariantCultureIgnoreCase)
+					String.Equals(fk.PrincipalTable, PrincipalTable.TableName, StringComparison.OrdinalIgnoreCase)
+					&& String.Equals(fk.PrincipalColumn, PrincipalKey, StringComparison.OrdinalIgnoreCase)
+					&& String.Equals(fk.DependentTable, DependentTable.TableName, StringComparison.OrdinalIgnoreCase)
+					&& String.Equals(fk.DependentColumn, DependentKey, StringComparison.OrdinalIgnoreCase)
 				)
 				||
 				(
 					// format: DependentTable.FK = PrincipalTable.PK 
-					String.Equals(fk.PrincipalTable, DependentTable.TableName, StringComparison.InvariantCultureIgnoreCase)
-					&& String.Equals(fk.PrincipalColumn, DependentKey, StringComparison.InvariantCultureIgnoreCase)
-					&& String.Equals(fk.DependentTable, PrincipalTable.TableName, StringComparison.InvariantCultureIgnoreCase)
-					&& String.Equals(fk.DependentColumn, PrincipalKey, StringComparison.InvariantCultureIgnoreCase)
+					String.Equals(fk.PrincipalTable, DependentTable.TableName, StringComparison.OrdinalIgnoreCase)
+					&& String.Equals(fk.PrincipalColumn, DependentKey, StringComparison.OrdinalIgnoreCase)
+					&& String.Equals(fk.DependentTable, PrincipalTable.TableName, StringComparison.OrdinalIgnoreCase)
+					&& String.Equals(fk.DependentColumn, PrincipalKey, StringComparison.OrdinalIgnoreCase)
 				)
 			);
 

@@ -22,7 +22,7 @@ namespace <#= DalNamespace #>
 	/// The dal implementation class (inherits from NoefDal).
 	/// If you want to access the <#= ClassName #> singleton instance, use <#= ClassName #>.Instance.
 	/// </summary>
-	public partial class <#= ClassName #>Impl : NoefDal
+	public partial class <#= ClassName #>Impl : <#= BaseClassName #>
 	{
 		// Required overrides
 		public override string ConnectionStringName
@@ -100,6 +100,7 @@ namespace <#= DalNamespace #>
 				.Replace("<#= DtoNamespace #>", Settings.DtoNamespace)
 				.Replace("<#= DalNamespace #>", Settings.DalNamespace)
 				.Replace("<#= ClassName #>", Settings.DalClassName)
+				.Replace("<#= BaseClassName #>", Settings.DalBaseClassName)
 				.Replace("<#= CnStringName #>", cnStringName)
 				;
 			Output.WriteLine(sb.ToString());

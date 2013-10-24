@@ -238,7 +238,7 @@ namespace Noef
 
 		public ColumnMetadata GetColumn(string colName)
 		{
-			return Columns.FirstOrDefault(col => String.Equals(col.Name, colName, StringComparison.InvariantCultureIgnoreCase));
+			return Columns.FirstOrDefault(col => String.Equals(col.Name, colName, StringComparison.OrdinalIgnoreCase));
 		}
 
 

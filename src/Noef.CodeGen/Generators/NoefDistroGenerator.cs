@@ -17,8 +17,8 @@ namespace Noef.CodeGen.Generators
 		public bool SupportSqlTableValuedParams { get; set; }
 
 		// Constructor
-		public NoefDistroGenerator(TextWriter output, string noefNamespace = "Noef")
-			: base(output, null)
+		public NoefDistroGenerator(TextWriter output, ImportSettings settings, string noefNamespace = "Noef")
+			: base(output, settings)
 		{
 			NoefNamespace = noefNamespace;
 			SupportSqlCE = false;
@@ -174,6 +174,14 @@ namespace Noef.CodeGen.Generators
 
 		public override void Run()
 		{
+			if (Settings.DalBaseClassName != "NoefDal")
+			{
+				Output.WriteLine("// No Noef distribution generated, because your DAL class specified a base class in your noef-config.xml");
+				Output.WriteLine("// The intended usage for that is that class already subclasses NoefDal");
+				Output.Flush();
+				return;
+			}
+
 			StringBuilder sb = new StringBuilder();
 			sb.AppendLine("// Noef single cs file distribution");
 			sb.AppendLine("// Generated: " + DateTime.Now);

@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noef", "Noef\Noef.csproj", "{77047E5E-0AE9-492C-A01B-95F556893CCE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noef.UnitTests", "Noef.UnitTests\Noef.UnitTests.csproj", "{2CF72202-E8C7-49D3-95BE-6681D3BA6E13}"
@@ -18,6 +20,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Old - needs fixing", "Old - needs fixing", "{90EC104C-C652-413D-A0E2-34FC89E0C70B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noef.Benchmarks", "Noef.Benchmarks\Noef.Benchmarks.csproj", "{484FB2CE-2ACF-4619-80F1-C17D096BF624}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noef.CustomTool", "Noef.CustomTool\Noef.CustomTool.csproj", "{178C181A-2920-49A5-8570-A4FA505437D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,6 +81,16 @@ Global
 		{484FB2CE-2ACF-4619-80F1-C17D096BF624}.Release|Mixed Platforms.Build.0 = Release|x86
 		{484FB2CE-2ACF-4619-80F1-C17D096BF624}.Release|x86.ActiveCfg = Release|x86
 		{484FB2CE-2ACF-4619-80F1-C17D096BF624}.Release|x86.Build.0 = Release|x86
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

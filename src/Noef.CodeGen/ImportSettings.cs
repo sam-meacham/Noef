@@ -156,6 +156,9 @@ namespace Noef.CodeGen
 				foreach (XElement import in tables.Elements(ns + "import"))
 				{
 					string tableName = import.Attribute("name").ValueOrNull();
+					if (String.IsNullOrWhiteSpace(tableName))
+						throw new Exception("name attribute is required (the name of the table)");
+
 					string className = import.Attribute("class").ValueOrNull() ?? tableName;
 					string baseClass = import.Attribute("baseClass").ValueOrNull();
 					string connection = import.Attribute("connection").ValueOrNull() ?? DalConnectionName;

@@ -30,9 +30,9 @@ namespace <#= DalNamespace #>
 			get { return ""<#= CnStringName #>""; }
 		}
 
-		public override DbType DbType
+		public override NoefDbType DbType
 		{
-			get { return DbType.SqlServer; }
+			get { return NoefDbType.SqlServer; }
 		}
 
 		// NOTE: This file was auto generated, and can be overwritten. The <#= ClassName #>Impl class is partial. If you want to add anything to it, do it in a different file with a partial class.

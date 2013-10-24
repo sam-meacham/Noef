@@ -24,7 +24,7 @@ namespace Noef
 	{
 		private static readonly IDictionary<string, string> s_connectionStrings = new Dictionary<string, string>();
 		public abstract string ConnectionStringName { get; }
-		public abstract DbType DbType { get; }
+		public abstract NoefDbType DbType { get; }
 		private readonly string m_uniqueDalKey;
 		public static readonly object s_objSync = new object();
 
@@ -230,12 +230,12 @@ namespace Noef
 				string cnString = GetConnectionString(connectionStringName);
 				switch(DbType)
 				{
-					case DbType.SqlServer2012:
-					case DbType.SqlServer:
+					case NoefDbType.SqlServer2012:
+					case NoefDbType.SqlServer:
 						cn = new SqlConnection(cnString);
 						break;
 #if SQL_CE
-					case DbType.SqlCE:
+					case NoefDbType.SqlCE:
 						cn = new SqlCeConnection(cnString);
 						break;
 #endif
@@ -370,13 +370,13 @@ namespace Noef
 			IDbCommand cmd;
 			switch(DbType)
 			{
-				case DbType.SqlServer2012:
-				case DbType.SqlServer:
+				case NoefDbType.SqlServer2012:
+				case NoefDbType.SqlServer:
 					cmd = new SqlCommand(sql);
 					break;
 
 #if SQL_CE
-				case DbType.SqlCE:
+				case NoefDbType.SqlCE:
 					cmd = new SqlCeCommand(sql);
 					break;
 #endif

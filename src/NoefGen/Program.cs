@@ -48,7 +48,7 @@ Example:
 
 			// if they don't specify an output type, just run ALL output types
 			if (String.IsNullOrWhiteSpace(outputTypes))
-				outputTypes = String.Join(",", Enum.GetNames(typeof(OutputType)));
+				outputTypes = "Dal,Dtos,HttpModule,Metadata,NoefDistro,RelatedProperties,RelationshipsConfig";
 
 			if (String.IsNullOrWhiteSpace(settingsFile))
 				settingsFile = "noef-config.xml";

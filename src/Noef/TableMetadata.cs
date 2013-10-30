@@ -199,7 +199,12 @@ namespace Noef
 			// the current executing assembly will be our DataAccess or DAL assembly).  The current assembly is more likely.
 			// NOTE: If Noef is being used as an assembly reference and NOT a single file distribution, and the Metadata is NOT in the same assembly as the type
 			// (could be the case if the type is in a separate Dtos project), this won't be able to find the Metadata class!
-			var typesInCurrent = ReflectionHelper.GetTypesWithAttribute(Assembly.GetExecutingAssembly(), typeof(MetadataClassAttribute)).ToList();
+
+			Assembly executing = Assembly.GetExecutingAssembly();
+			List<Type> typesInCurrent = ReflectionHelper.GetTypesWithAttribute(executing, typeof(MetadataClassAttribute)).ToList();
+
+
+
 			if (typesInCurrent.Count > 0)
 			{
 				foreach(Type t in typesInCurrent)

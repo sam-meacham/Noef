@@ -174,7 +174,7 @@ namespace Noef.CodeGen.Generators
 
 		public override void Run()
 		{
-			if (Settings.DalBaseClassName != "NoefDal")
+			if (Settings.DalBaseClassName != "NoefDal" && !Settings.ForceGenNoefDistro)
 			{
 				Output.WriteLine("// No Noef distribution generated, because your DAL class specified a base class in your noef-config.xml");
 				Output.WriteLine("// The intended usage for that is that class already subclasses NoefDal");

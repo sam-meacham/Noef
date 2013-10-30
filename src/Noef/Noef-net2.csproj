@@ -71,8 +71,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>xcopy "$(ProjectDir)$(OutDir)*" "$(ProjectDir)..\..\deploy\NoefGen\" /Y
+del "$(ProjectDir)..\..\deploy\NoefGen\*.tmp"
+cd "$(SolutionDir)..\scripts\"
+call "$(SolutionDir)..\scripts\create-merged-noefgen-net2.bat"
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

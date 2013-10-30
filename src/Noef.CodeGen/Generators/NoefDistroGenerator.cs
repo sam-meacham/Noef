@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -182,9 +183,15 @@ namespace Noef.CodeGen.Generators
 				return;
 			}
 
+			Assembly asm = Assembly.GetExecutingAssembly();
+			FileVersionInfo info = FileVersionInfo.GetVersionInfo(asm.Location);
+			string versionString = info.ProductVersion; // for noefgen, ProductVersion and FileVersion are always sync'd
+
 			StringBuilder sb = new StringBuilder();
 			sb.AppendLine("// Noef single cs file distribution");
-			sb.AppendLine("// Generated: " + DateTime.Now);
+			// Sam Meacham - 10/30/2013 - removing timestamp, it causes svn/git conflicts.
+			//sb.AppendLine("// Generated: " + DateTime.Now);
+			sb.AppendLine("// NoefGen version: " + versionString);
 			sb.AppendLine("// Root namespace: " + NoefNamespace);
 			sb.AppendLine("// SQL CE support: " + SupportSqlCE);
 			sb.AppendLine("// SQL Server Table Valued Params support: " + SupportSqlTableValuedParams);

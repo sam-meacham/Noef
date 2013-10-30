@@ -92,7 +92,7 @@ namespace Noef.CodeGen
 				{
 					string cnName = cnString.Attribute("name").ValueOrNull();
 					string cnVal = cnString.Attribute("connectionString").ValueOrNull();
-					if (String.IsNullOrWhiteSpace(cnName) || String.IsNullOrWhiteSpace(cnVal))
+					if (String.IsNullOrEmpty(cnName) || String.IsNullOrEmpty(cnVal))
 						throw new Exception("connection strings must have a name and connectionString attribute");
 					m_cnStrings.Add(cnName, cnVal);
 				}
@@ -165,7 +165,7 @@ namespace Noef.CodeGen
 				foreach (XElement import in tables.Elements(ns + "import"))
 				{
 					string tableName = import.Attribute("name").ValueOrNull();
-					if (String.IsNullOrWhiteSpace(tableName))
+					if (String.IsNullOrEmpty(tableName))
 						throw new Exception("name attribute is required (the name of the table)");
 
 					string className = import.Attribute("class").ValueOrNull() ?? tableName;
@@ -201,7 +201,7 @@ namespace Noef.CodeGen
 					{
 						// this table uses a different connection
 						mapping.ConnectionName = connection;
-						if (String.IsNullOrWhiteSpace(mapping.ConnectionName))
+						if (String.IsNullOrEmpty(mapping.ConnectionName))
 							mapping.ConnectionName = null;
 
 						using (SqlConnection cn2 = new SqlConnection(m_cnStrings[connection]))

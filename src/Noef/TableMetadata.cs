@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+#if !NET2
 using System.Collections.Concurrent;
+#endif
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -31,7 +33,11 @@ namespace Noef
 		/// <summary>
 		/// The metadata on all of the classes registered via <see cref="AddTables" />.
 		/// </summary>
+#if !NET2
 		private static readonly IDictionary<Type, TableMetadata> s_tables = new ConcurrentDictionary<Type, TableMetadata>();
+#else
+		private static readonly IDictionary<Type, TableMetadata> s_tables = new Dictionary<Type, TableMetadata>();
+#endif
 
 		// Used for verifying the string after an ORDER BY.  Splits the column name from an optional ASC or DESC, grouping them both for capture.
 		private static readonly Regex RX_COL = new Regex(@"^(\w+)(?:\s+|$)(DESC|ASC)?$", RegexOptions.IgnoreCase);
@@ -199,7 +205,12 @@ namespace Noef
 			// the current executing assembly will be our DataAccess or DAL assembly).  The current assembly is more likely.
 			// NOTE: If Noef is being used as an assembly reference and NOT a single file distribution, and the Metadata is NOT in the same assembly as the type
 			// (could be the case if the type is in a separate Dtos project), this won't be able to find the Metadata class!
-			var typesInCurrent = ReflectionHelper.GetTypesWithAttribute(Assembly.GetExecutingAssembly(), typeof(MetadataClassAttribute)).ToList();
+
+			Assembly executing = Assembly.GetExecutingAssembly();
+			List<Type> typesInCurrent = ReflectionHelper.GetTypesWithAttribute(executing, typeof(MetadataClassAttribute)).ToList();
+
+
+
 			if (typesInCurrent.Count > 0)
 			{
 				foreach(Type t in typesInCurrent)
@@ -263,7 +274,7 @@ namespace Noef
 			{
 				sb.AppendLine(tmeta.Value.Name);
 				sb.AppendLine("\t" + tmeta.Key.AssemblyQualifiedName);
-				sb.AppendLine("\t" + String.Join(",", tmeta.Value.Columns.Select(col => col.Name)));
+				sb.AppendLine("\t" + String.Join(",", tmeta.Value.Columns.Select(col => col.Name).ToArray()));
 			}
 			return sb.ToString();
 		}
@@ -305,7 +316,7 @@ namespace Noef
 				verifiedColumns.Add(colName + " " + dir);
 			}
 
-			return String.Join(",", verifiedColumns);
+			return String.Join(",", verifiedColumns.ToArray());
 		}
 
 		public static string GetTableName<T>()
@@ -336,7 +347,7 @@ namespace Noef
 		/// </summary>
 		public static string GetColumnsString<T>()
 		{
-			return String.Join(",", GetColumns<T>().Select(col => col.Name));
+			return String.Join(",", GetColumns<T>().Select(col => col.Name).ToArray());
 		}
 
 		/// <summary>
@@ -348,7 +359,7 @@ namespace Noef
 		/// <returns></returns>
 		public static string GetColumnsString<T>(string columnPrefix)
 		{
-			return String.Join(",", GetColumns<T>().Select(col => columnPrefix + col.Name));
+			return String.Join(",", GetColumns<T>().Select(col => columnPrefix + col.Name).ToArray());
 		}
 
 		/// <summary>
@@ -358,11 +369,11 @@ namespace Noef
 		/// </summary>
 		public static string GetColumnsString<T>(string tableAlias, string asPrefix)
 		{
-			if (!String.IsNullOrWhiteSpace(tableAlias))
+			if (!String.IsNullOrEmpty(tableAlias))
 				tableAlias += ".";
-			if (String.IsNullOrWhiteSpace(asPrefix))
-				return String.Join(",", GetColumns<T>().Select(col => tableAlias + col.Name));
-			return String.Join(",", GetColumns<T>().Select(col => tableAlias + col.Name + " AS [" + asPrefix + col.Name + "]"));
+			if (String.IsNullOrEmpty(asPrefix))
+				return String.Join(",", GetColumns<T>().Select(col => tableAlias + col.Name).ToArray());
+			return String.Join(",", GetColumns<T>().Select(col => tableAlias + col.Name + " AS [" + asPrefix + col.Name + "]").ToArray());
 		}
 
 		/// <summary>
@@ -373,11 +384,11 @@ namespace Noef
 		/// </summary>
 		public static string GetColumnsString<T>(string tableAlias, string sourceColumnPrefix, string asPrefix)
 		{
-			if (!String.IsNullOrWhiteSpace(tableAlias))
+			if (!String.IsNullOrEmpty(tableAlias))
 				tableAlias += ".";
-			if (String.IsNullOrWhiteSpace(asPrefix))
-				return String.Join(",", GetColumns<T>().Select(col => tableAlias + sourceColumnPrefix + col.Name));
-			return String.Join(",", GetColumns<T>().Select(col => tableAlias + sourceColumnPrefix + col.Name + " AS [" + asPrefix + col.Name + "]"));
+			if (String.IsNullOrEmpty(asPrefix))
+				return String.Join(",", GetColumns<T>().Select(col => tableAlias + sourceColumnPrefix + col.Name).ToArray());
+			return String.Join(",", GetColumns<T>().Select(col => tableAlias + sourceColumnPrefix + col.Name + " AS [" + asPrefix + col.Name + "]").ToArray());
 		}
 
 

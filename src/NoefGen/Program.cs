@@ -47,9 +47,9 @@ Example:
 			bool noArgs = outputTypes == null && settingsFile == null;
 
 			// if they don't specify an output type, just run ALL output types
-			if (String.IsNullOrWhiteSpace(outputTypes))
+			if (String.IsNullOrEmpty(outputTypes))
 				outputTypes = "Dtos,RelatedProperties,RelationshipsConfig,Metadata,NoefDistro,Dal,HttpModule,Ui";
-			if (String.IsNullOrWhiteSpace(settingsFile))
+			if (String.IsNullOrEmpty(settingsFile))
 				settingsFile = "noef-config.xml";
 
 			// Create the ImportSettings from the file they specified

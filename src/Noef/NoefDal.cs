@@ -87,7 +87,7 @@ namespace Noef
 			Dispose();
 		}
 
-
+#if !NET2 // Lazy<T> is .NET 4+
 		/// <summary>
 		/// setup() will be called right away, on a separate thread.
 		/// A Lazy{T} object is created, and fnValue() will be called when that lazy is evaluated.
@@ -162,11 +162,11 @@ namespace Noef
 			Lazy<T> lazy = new Lazy<T>(fnValueWrapper);
 			return lazy;
 		}
-
+#endif
 
 		public virtual string GetConnectionString(string connectionStringName = null)
 		{
-			if (String.IsNullOrWhiteSpace(connectionStringName))
+			if (String.IsNullOrEmpty(connectionStringName))
 				connectionStringName = ConnectionStringName;
 
 			// dirty (non thread-safe check)
@@ -198,7 +198,7 @@ namespace Noef
 			// If they didn't pass in a connection string name,
 			// try to get the one that's specific for this table (TableMetadata.ConnectionName).
 			// If that's null, use the default connection string name for this DAL.
-			if (String.IsNullOrWhiteSpace(connectionStringName))
+			if (String.IsNullOrEmpty(connectionStringName))
 				connectionStringName = TableMetadata.For<T>().ConnectionName ?? ConnectionStringName;
 			return GetConnectionString(connectionStringName);
 		}
@@ -211,7 +211,7 @@ namespace Noef
 			// If they didn't pass in a connection string name,
 			// try to get the one that's specific for this table (TableMetadata.ConnectionName).
 			// If that's null, use the default connection string name for this DAL.
-			if (String.IsNullOrWhiteSpace(connectionStringName))
+			if (String.IsNullOrEmpty(connectionStringName))
 				connectionStringName = TableMetadata.For<T>().ConnectionName ?? ConnectionStringName;
 			return GetConnection(connectionStringName);
 		}
@@ -221,7 +221,7 @@ namespace Noef
 		/// </summary>
 		public virtual IDbConnection GetConnection(string connectionStringName = null)
 		{
-			if (String.IsNullOrWhiteSpace(connectionStringName))
+			if (String.IsNullOrEmpty(connectionStringName))
 				connectionStringName = ConnectionStringName;
 			string key = m_uniqueDalKey + "_cn_" + connectionStringName;
 			IDbConnection cn = (IDbConnection)PerRequestStore.GetData(key);
@@ -681,9 +681,9 @@ namespace Noef
 			//ColumnMetadata colMeta2 = t2.Columns.Single(c => String.Equals(c.Name, col2, StringComparison.OrdinalIgnoreCase));
 
 			// Default values for where and orderBy if none were provided
-			if (String.IsNullOrWhiteSpace(where))
+			if (String.IsNullOrEmpty(where))
 				where = "1 = 1";
-			if (String.IsNullOrWhiteSpace(orderBy))
+			if (String.IsNullOrEmpty(orderBy))
 				orderBy = t1.Name + "." + t1.Pks[0].Name + " DESC, " + t2.Name + "." + t2.Pks[0].Name + " DESC";
 
 			// Set up the query
@@ -760,7 +760,7 @@ ORDER BY
 		public T Select<T>(object[] pkValues, IDbConnection cn = null, Action<IDbCommand> beforeExecute = null, IDbTransaction tx = null, int timeout = -1)
 		{
 			TableMetadata tmeta = TableMetadata.For<T>();
-			List<string> ands = tmeta.Pks.Select(pk => "(" + pk.Name + " = @" + pk.Name + ")").ToList();
+			string[] ands = tmeta.Pks.Select(pk => "(" + pk.Name + " = @" + pk.Name + ")").ToArray();
 			string where = String.Join(" AND ", ands);
 
 			string sql = String.Format("SELECT {0} FROM {1} WHERE {2}", TableMetadata.GetColumnsString<T>(), tmeta.Name, where);
@@ -885,7 +885,7 @@ ORDER BY
 					// Otherwise, set the col value to a param with the same name as the column.
 					sets.Add(col.Name + " = @" + col.Name);
 			}
-			sb.AppendLine(String.Join(",", sets));
+			sb.AppendLine(String.Join(",", sets.ToArray()));
 			sb.AppendLine("WHERE " + pkColumn + " = @" + pkColumn);
 			sb.AppendLine();
 			sb.AppendLine("-- Return the updated record");
@@ -1009,7 +1009,7 @@ ORDER BY
 					continue;
 				sets.Add(col.Name + " = @" + col.Name);
 			}
-			sb.AppendLine(String.Join(",", sets));
+			sb.AppendLine(String.Join(",", sets.ToArray()));
 			sb.AppendLine("WHERE " + pkColumn + " = @" + pkColumn);
 			sb.AppendLine();
 			sb.AppendLine("-- Return the updated record");
@@ -1099,7 +1099,7 @@ ORDER BY
 				.Where(col => !excluded.Contains(col.Name, StringComparer.InvariantCultureIgnoreCase))
 				.Select(c => c.Name);
 
-			sb.AppendLine("(" + String.Join(",", insertCols) + ")");
+			sb.AppendLine("(" + String.Join(",", insertCols.ToArray()) + ")");
 			sb.Append("VALUES(");
 
 			List<string> insertVals = new List<string>();
@@ -1112,7 +1112,7 @@ ORDER BY
 				else
 					insertVals.Add("@" + col.Name);
 			}
-			sb.Append(String.Join(",", insertVals));
+			sb.Append(String.Join(",", insertVals.ToArray()));
 			sb.AppendLine(")");
 
 			sb.AppendLine("-- Return the inserted record");

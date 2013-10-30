@@ -9,7 +9,7 @@ namespace Noef.CodeGen
 		{
 			if (xelement == null)
 				return null;
-			if (String.IsNullOrWhiteSpace(xelement.Value))
+			if (String.IsNullOrEmpty(xelement.Value))
 				return null;
 			return xelement.Value;
 		}
@@ -20,7 +20,7 @@ namespace Noef.CodeGen
 			// So we check for null in here
 			if (xattribute == null)
 				return null;
-			if (String.IsNullOrWhiteSpace(xattribute.Value))
+			if (String.IsNullOrEmpty(xattribute.Value))
 				return null;
 			return xattribute.Value;
 		}

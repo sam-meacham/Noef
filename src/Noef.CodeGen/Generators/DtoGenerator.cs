@@ -151,7 +151,7 @@ namespace <#= DtoNamespace #>
 			{
 				sb.AppendLine("\t\t// (As principal)");
 				sb.AppendLine("\t\t// (D) " + p.DependentTable.TableName + "." + p.DependentKey + " = (P) " + p.PrincipalTable.TableName + "." + p.PrincipalKey + (p.FkInfo == null ? "" : " (" + p.FkInfo.FkName + ")"));
-				if (String.IsNullOrWhiteSpace(p.DependentPropertyName))
+				if (String.IsNullOrEmpty(p.DependentPropertyName))
 				{
 					sb.AppendLine("\t\t// (prop name in the noef cfg file is blank or missing; property excluded)");
 					sb.AppendLine("\t\t// " + p.GetDependentPropertyDeclaration());
@@ -170,7 +170,7 @@ namespace <#= DtoNamespace #>
 			{
 				sb.AppendLine("\t\t// (As dependent)");
 				sb.AppendLine("\t\t// (D) " + d.DependentTable.TableName + "." + d.DependentKey + " = (P) " + d.PrincipalTable.TableName + "." + d.PrincipalKey + (d.FkInfo == null ? "" : " (" + d.FkInfo.FkName + ")"));
-				if (String.IsNullOrWhiteSpace(d.PrincipalPropertyName))
+				if (String.IsNullOrEmpty(d.PrincipalPropertyName))
 				{
 					sb.AppendLine("\t\t// (prop name in the noef cfg file is blank or missing; property excluded)");
 					sb.AppendLine("\t\t// " + d.GetPrincipalPropertyDeclaration());

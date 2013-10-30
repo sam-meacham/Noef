@@ -343,7 +343,7 @@ namespace Noef.CodeGen {
 			TypeConverter conv = TypeDescriptor.GetConverter (typeof (T));
 			T t = default (T);
 			try {
-				if (!string.IsNullOrWhiteSpace(value))
+				if (!string.IsNullOrEmpty(value))
 				{
 					if (typeof (T) == typeof(int))
 					{

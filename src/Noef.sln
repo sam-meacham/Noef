@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noef.Benchmarks", "Noef.Ben
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noef.CustomTool", "Noef.CustomTool\Noef.CustomTool.csproj", "{178C181A-2920-49A5-8570-A4FA505437D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noef-net2", "Noef\Noef-net2.csproj", "{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,16 @@ Global
 		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{178C181A-2920-49A5-8570-A4FA505437D8}.Release|x86.ActiveCfg = Release|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{55B535B1-BC59-4ECF-B151-30E6CF5B5D1F}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

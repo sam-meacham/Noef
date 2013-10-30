@@ -39,7 +39,7 @@ namespace Noef
 		/// <returns></returns>
 		public static string NullIfBlank(this string s)
 		{
-			return String.IsNullOrWhiteSpace(s) ? null : s;
+			return String.IsNullOrEmpty(s) ? null : s;
 		}
 	}
 }

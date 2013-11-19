@@ -17,7 +17,6 @@ using System.Web.Security;
 using System.Data.SqlServerCe;
 #endif
 
-
 namespace Noef
 {
 	public abstract class NoefDal : IDisposable
@@ -34,6 +33,7 @@ namespace Noef
 		// The IHttpModule will also populate these (as best as it can)
 		public string UserName { get; set; }
 		public string IPAddress { get; set; }
+		public string AppRoot { get; set; }
 		public IPrincipal PrincipalUser { get; set; }
 		public bool IsLocalhost { get; set; }
 
@@ -72,8 +72,17 @@ namespace Noef
 		{
 			if (app != null)
 			{
-				IPAddress = NoefDal.GetIPAddress();
-				IsLocalhost = app.Context.Request.Url.Host.ToLower().Contains("localhost");
+				IPAddress = GetIPAddress();
+
+				AppRoot = app.Context.Request.ApplicationPath;
+				Debug.Assert(AppRoot != null);
+				if (!AppRoot.EndsWith("/"))
+					AppRoot += "/";
+
+				// we'll consider it localhost if the entire word is found with word boundaries in the hostname.
+				Regex rxLocal = new Regex(@"\blocalhost\b");
+				string hostname = app.Context.Request.Url.Host.ToLower();
+				IsLocalhost = rxLocal.IsMatch(hostname);
 				if (app.User != null)
 				{
 					PrincipalUser = app.User;
@@ -104,8 +113,7 @@ namespace Noef
 				// Need access to the DAL.  Note Noef hasn't been thread-safety tested or evaluated yet.
 				HttpContext.Current = mainThreadContext;
 				setup();
-			});
-			t.Name = "ThreadLazyPattern-setup-" + typeof(T).Name;
+			}) { Name = "ThreadLazyPattern-setup-" + typeof (T).Name };
 			t.Start();
 
 			// set up our wrapper value factory, that will join the "setup" thread in
@@ -140,8 +148,7 @@ namespace Noef
 				// Need access to the DAL.  Note Noef hasn't been thread-safety tested or evaluated yet.
 				HttpContext.Current = mainThreadContext;
 				setup();
-			});
-			t.Name = "ThreadLazyPattern-setup-" + typeof(T).Name;
+			}) { Name = "ThreadLazyPattern-setup-" + typeof (T).Name };
 			t.Start();
 
 			// TODO: Does this do what I want?
@@ -414,8 +421,6 @@ namespace Noef
 			using (IDbCommand cmd = CreateCommand(sql, sqlParams, cn, commandType, tx, timeout))
 			using (IDataReader reader = cmd.ExecuteReader())
 			{
-				if (reader == null)
-					throw new Exception("ExecuteReader() returned a null IDataReader");
 				IList<object[]> rows = reader.GetRows();
 				reader.Close();
 				return rows;
@@ -427,8 +432,6 @@ namespace Noef
 			using (IDbCommand cmd = CreateCommand(sql, sqlParams, cn, commandType, tx, timeout))
 			using (IDataReader reader = cmd.ExecuteReader())
 			{
-				if (reader == null)
-					throw new Exception("ExecuteReader() returned a null IDataReader");
 				IList<IList<object[]>> sets = new List<IList<object[]>>();
 
 				// get the first set
@@ -451,8 +454,6 @@ namespace Noef
 			using (IDbCommand cmd = CreateCommand(sql, sqlParams, cn, commandType, tx, timeout))
 			using (IDataReader reader = cmd.ExecuteReader())
 			{
-				if (reader == null)
-					throw new Exception("ExecuteReader returned a null IDataReader");
 				RawTable table = reader.GetRawTable(startingColumn);
 				reader.Close();
 				return table;
@@ -467,8 +468,6 @@ namespace Noef
 			using (IDbCommand cmd = CreateCommand<T>(sql, sqlParams, cn, commandType, tx, timeout))
 			using (IDataReader reader = cmd.ExecuteReader())
 			{
-				if (reader == null)
-					throw new Exception("ExecuteReader returned a null IDataReader");
 				IList<T> rows = reader.HydrateList(startingColumn, pkColumn, propsToHydrate, hydrateRowCallback);
 				reader.Close();
 				return rows;
@@ -489,8 +488,6 @@ namespace Noef
 					beforeExecute(cmd);
 				using (IDataReader reader = cmd.ExecuteReader())
 				{
-					if (reader == null)
-						throw new Exception("ExecuteReader returned a null IDataReader");
 					IList<T> list = reader.HydrateList<T>();
 					reader.Close();
 					return list;
@@ -506,8 +503,6 @@ namespace Noef
 			using (IDbCommand cmd = CreateCommand<T>(sql, sqlParams, cn, commandType, tx, timeout))
 			using (IDataReader reader = cmd.ExecuteReader())
 			{
-				if (reader == null)
-					throw new Exception("ExecuteReader returned a null IDataReader");
 				IList<object[]> rawRows = reader.GetRows();
 				IList<T> rows = rawRows.HydrateUniqueList(keyIndex, startingColumn, pkColumn, propsToHydrate, hydrateRowCallback);
 				reader.Close();
@@ -524,8 +519,6 @@ namespace Noef
 			using (IDbCommand cmd = CreateCommand<T>(sql, sqlParams, cn, commandType, tx, timeout))
 			using (IDataReader reader = cmd.ExecuteReader())
 			{
-				if (reader == null)
-					throw new Exception("ExecuteReader returned a null IDataReader");
 				T record = reader.Hydrate(startingColumn, pkColumn, propsToHydrate, hydrateRowCallback);
 				reader.Close();
 				return record;
@@ -599,7 +592,7 @@ namespace Noef
 			buildPageQueries(pageIndex * pageSize, pageSize, sql, out sqlCount, out sqlPage);
 
 			// Get the records and the total count (we do startingColum=1 to skip the row number column)
-			IList<T> data = Query<T>(sqlPage, sqlParams, 1, propsToHydrate: propsToHydrate, hydrateRowCallback: hydrateRowCallback, cn: cn, tx: tx, timeout: timeout);
+			IList<T> data = Query(sqlPage, sqlParams, 1, propsToHydrate: propsToHydrate, hydrateRowCallback: hydrateRowCallback, cn: cn, tx: tx, timeout: timeout);
 			int totalRecords = (int)ExecuteScalar(sqlCount, sqlParams);
 
 			// Create the PagedData object and return it
@@ -772,8 +765,6 @@ ORDER BY
 					beforeExecute(cmd);
 				using (IDataReader reader = cmd.ExecuteReader())
 				{
-					if (reader == null)
-						throw new Exception("ExecuteReader returned a null IDataReader");
 					T obj = reader.Hydrate<T>();
 					reader.Close();
 					return obj;
@@ -797,8 +788,6 @@ ORDER BY
 					beforeExecute(cmd);
 				using (IDataReader reader = cmd.ExecuteReader())
 				{
-					if (reader == null)
-						throw new Exception("ExecuteReader returned a null IDataReader");
 					T obj = reader.Hydrate<T>();
 					reader.Close();
 					return obj;
@@ -919,8 +908,6 @@ ORDER BY
 				// Execute the command
 				using (IDataReader reader = cmd.ExecuteReader())
 				{
-					if (reader == null)
-						throw new Exception("ExecuteReader returned a null IDataReader");
 					// Get the updated object
 					updatedObj = reader.Hydrate<T>();
 					reader.Close();
@@ -1001,6 +988,11 @@ ORDER BY
 			// Set up the sql statement
 			sb.AppendLine("UPDATE " + tmeta.Name);
 			sb.AppendLine("SET");
+
+
+			// here's the old way, for reference. I went with the weird resharper suggestion to use a linq statement.
+			// Generally I don't favor the "sql" flavor of linq, but I want to be more familiar with it, so I'm forcing it here.
+			/*
 			List<string> sets = new List<string>();
 			foreach(ColumnMetadata col in tmeta.Columns)
 			{
@@ -1010,6 +1002,14 @@ ORDER BY
 				sets.Add(col.Name + " = @" + col.Name);
 			}
 			sb.AppendLine(String.Join(",", sets.ToArray()));
+			*/
+
+			// new way (linq)
+			string[] sets = (from col in tmeta.Columns
+				where whitelist.Contains(col.Name, StringComparer.InvariantCultureIgnoreCase)
+				select col.Name + " = @" + col.Name).ToArray();
+
+			sb.AppendLine(String.Join(",", sets));
 			sb.AppendLine("WHERE " + pkColumn + " = @" + pkColumn);
 			sb.AppendLine();
 			sb.AppendLine("-- Return the updated record");
@@ -1040,8 +1040,6 @@ ORDER BY
 					beforeExecute(cmd);
 				using (IDataReader reader = cmd.ExecuteReader())
 				{
-					if (reader == null)
-						throw new Exception("ExecuteReader returned a null IDataReader");
 					// Get the updated object
 					updatedObj = reader.Hydrate<T>();
 					reader.Close();
@@ -1138,8 +1136,6 @@ ORDER BY
 					beforeExecute(cmd);
 				using (IDataReader reader = cmd.ExecuteReader())
 				{
-					if (reader == null)
-						throw new Exception("ExecuteReader returned a null IDataReader");
 					// Get the inserted object
 					insertedObj = reader.Hydrate<T>();
 					reader.Close();

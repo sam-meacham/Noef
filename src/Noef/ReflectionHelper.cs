@@ -9,6 +9,11 @@ namespace Noef
 {
 	public static class ReflectionHelper
 	{
+		public static bool HasAttribute<T>(this Type type) where T : Attribute
+		{
+			return type.GetCustomAttributes(typeof(T), inherit: true).Length > 0;
+		}
+
 		public static string GetPropertyName<T>(Expression<Func<T, object>> exp)
 		{
 			MemberExpression body = exp.Body as MemberExpression;

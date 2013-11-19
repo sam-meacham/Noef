@@ -61,7 +61,6 @@
     <Compile Include="HydrateException.cs" />
     <Compile Include="HydrateExtensions.cs" />
     <Compile Include="MetadataClassAttribute.cs" />
-    <Compile Include="NoefHttpModule.cs" />
     <Compile Include="RawTable.cs" />
     <Compile Include="ColumnMetadata.cs" />
     <Compile Include="NoefDal.cs" />

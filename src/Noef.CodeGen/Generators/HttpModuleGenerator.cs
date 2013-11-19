@@ -7,6 +7,7 @@ namespace Noef.CodeGen.Generators
 	{
 		public static readonly string DAL_TEMPLATE = @"using System;
 using System.Web;
+using System.ComponentModel;
 using <#= NoefNamespace #>;
 
 /*
@@ -34,6 +35,7 @@ namespace <#= DalNamespace #>
 	/// An IHttpModule implementation that can be used to set up your DAL for use in an ASP.NET app.
 	/// This can be configured in your app's web.config file, like any other IHttpModule.
 	/// </summary>
+	[Description(""NoefDalHttpModule"")]
 	public partial class <#= DalClassName #>HttpModule : IHttpModule
 	{
 		public void Dispose()

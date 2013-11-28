@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<noefConfig xmlns="urn:noef-config-1.1">
+	<appConfig>c:/inetpub/wwwroot/web.config</appConfig>
+
+	<noef>
+		<namespace>Noef</namespace>
+	</noef>
+
+	<dal>
+		<class>MyDal</class>
+		<namespace>Lam.Examples</namespace>
+		<connection>g_NoefTest</connection>
+	</dal>
+
+	<!-- Settings for the individual tables, views, and table-valued-functions you want to create DTO types for -->
+	<tables>
+		<import name="Parent" />
+		<import name="Thing" />
+		<import name="ChildThing" />
+	</tables>
+
+	<!-- Settings for the FKs that relate your various imported table types.  These will create the related properties in your DTO types -->
+	<relationships>
+		<!-- FKs for ChildThing -->
+		<relationship fk="ChildThing.ParentID" pk="Thing.ID" principalPropertyName="Thing" dependentPropertyName="Children" />
+
+		<!-- FKs for Thing -->
+		<relationship fk="Thing.ParentID" pk="Parent.ID" principalPropertyName="Parent" dependentPropertyName="Things" />
+	</relationships>
+</noefConfig>

@@ -1,0 +1,7 @@
+
+<!-- FKs for ChildThing -->
+<relationship fk="ChildThing.ParentID" pk="Thing.ID" principalPropertyName="Thing" dependentPropertyName="ChildThing_s" />
+
+<!-- FKs for Thing -->
+<relationship fk="Thing.ParentID" pk="Parent.ID" principalPropertyName="Parent" dependentPropertyName="Thing_s" />
+

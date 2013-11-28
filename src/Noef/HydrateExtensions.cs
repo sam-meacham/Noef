@@ -262,6 +262,26 @@ namespace Noef
 			return list;
 		}
 
+		public static IList<T> HydrateNonNullUniqueList<T>(this IList<object[]> rows, int keyIndex, int startingColumn = 0, int pkColumn = -1, Expression<Func<T, object[]>> propsToHydrate = null, Action<T, object[]> hydrateRowCallback = null)
+		{
+			if (pkColumn == -1)
+				pkColumn = startingColumn;
+
+			List<T> list = new List<T>();
+			List<object> keys = new List<object>();
+			foreach(object[] row in rows)
+			{
+				object curKey = row[keyIndex];
+				// Make sure we're encountering a new key
+				if (curKey != null && curKey != DBNull.Value && !keys.Any(k => Equals(k, curKey)))
+				{
+					// Previously unencountered key.  Hydrate the object, add it to the list, and add the key to the list of encountered keys.
+					list.Add(row.Hydrate(startingColumn, pkColumn, propsToHydrate, hydrateRowCallback));
+					keys.Add(curKey);
+				}
+			}
+			return list;
+		}
 
 
 		/// <summary>
@@ -283,8 +303,6 @@ namespace Noef
 
 			return HydrateListPerKey<T>(rows, keyIndex, false, startingColumn, pkColumn);
 		}
-
-
 
 
 		/// <summary>
@@ -343,6 +361,54 @@ namespace Noef
 			}
 			return dict;
 		}
+
+		private static IEnumerable<KeyValuePair<object, IList<object[]>>> GroupTransform(this IEnumerable<object[]> rows,
+				int keyIndex,
+				Action<object, IList<object[]>> transform = null)
+		{
+			IDictionary<object, IList<object[]>> dict = new Dictionary<object, IList<object[]>>();
+			//List<object> keys = new List<object>();
+
+			// go through each row, splitting the flat rows into separate lists of rows,
+			// based on the value in the column at keyIndex
+			foreach(object[] row in rows)
+			{
+				object curKey = row[keyIndex];
+				// New key?
+				if (!dict.ContainsKey(curKey))
+					dict.Add(curKey, new List<object[]>());
+				dict[curKey].Add(row);
+			}
+			if (transform != null)
+			{
+				foreach (var group in dict)
+					transform(group.Key, group.Value);
+			}
+			return dict;
+		}
+
+
+		public static IDictionary<object, IList<T>> HydrateUniqueListPerKey<T>(this IList<object[]> rows,
+				int keyIndex,
+				int startingColumn = 0,
+				int pkColumn = -1,
+				Expression<Func<T, object[]>> propsToHydrate = null,
+				Action<T, object[]> hydrateRowCallback = null)
+		{
+			if (pkColumn == -1)
+				pkColumn = startingColumn;
+
+			var groups = rows.GroupTransform(keyIndex);
+
+			// The final list of lists that we'll return to the caller
+			IDictionary<object, IList<T>> dict = new Dictionary<object, IList<T>>();
+
+			foreach (KeyValuePair<object, IList<object[]>> group in groups)
+				dict[group.Key] = group.Value.HydrateNonNullUniqueList(pkColumn, startingColumn, pkColumn, propsToHydrate, hydrateRowCallback);
+			 
+			return dict;
+		}
+
 
 
 		// ********************************************************************************

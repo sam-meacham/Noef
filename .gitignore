@@ -115,3 +115,5 @@ UpgradeLog*.XML
 
 /src/Noef.CodeGen/NoefSrc.zip
 >>>>>>> dde9c88a12072284b75da79af1d6abaf0ab5db4a
+
+*.nupkg

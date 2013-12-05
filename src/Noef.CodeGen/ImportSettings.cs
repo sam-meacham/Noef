@@ -28,6 +28,7 @@ namespace Noef.CodeGen
 		public string DalNamespace { get; set; }
 		public string DalClassName { get; set; }
 		public string DalBaseClassName { get; set; }
+		public bool UseSingleton { get; set; }
 
 		// Database mapping info
 		/// <summary>
@@ -148,6 +149,9 @@ namespace Noef.CodeGen
 			if (classElement != null)
 			{
 				DalBaseClassName = classElement.Attribute("base").ValueOrNull() ?? DalBaseClassName;
+
+				string singletonVal = classElement.Attribute("singleton").ValueOrNull() ?? "false";
+				UseSingleton = bool.Parse(singletonVal);
 
 				// if they specify a base class other than NoefDal, _Noef.cs will be empty (no noef distro is gen'd).
 				// If the user needs the distro still, this is the setting that forces it (and it's neighbor to the setting that affects it)

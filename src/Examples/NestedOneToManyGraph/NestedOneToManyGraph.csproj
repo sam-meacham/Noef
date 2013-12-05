@@ -42,10 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Noef\_Dal.cs" />
-    <Compile Include="Noef\_DalHttpModule.cs" />
     <Compile Include="Noef\_Dtos.cs" />
     <Compile Include="Noef\_Metadata.cs" />
-    <Compile Include="Noef\_Noef.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -54,7 +52,6 @@
     <Content Include="Noef\NoefGen.exe" />
     <Content Include="Noef\_fks.txt" />
     <Content Include="Noef\_relatedProperties.txt" />
-    <Content Include="Noef\_ui.js" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

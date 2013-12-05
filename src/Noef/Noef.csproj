@@ -77,6 +77,8 @@
     <Compile Include="AppHelpers\StaticStore.cs" />
     <Compile Include="ObjectExtensions.cs" />
     <Compile Include="TableMetadata.cs" />
+    <Compile Include="ThreadLazyPattern.cs" />
+    <Compile Include="UserRequest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TODO.txt" />

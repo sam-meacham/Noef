@@ -8,10 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Web;
 using System.Web.Security;
 #if SQL_CE
@@ -22,23 +20,13 @@ namespace Noef
 {
 	public abstract class NoefDal : IDisposable
 	{
+		private string m_versionString;
+
 		public abstract string ConnectionStringName { get; }
 		public abstract NoefDbType DbType { get; }
 		private readonly string m_uniqueDalKey;
 		public int DefaultTimeout { get; set; }
-
-		// The IHttpModule will also populate these (as best as it can)
-		public string UserName { get; set; }
-		public string IPAddress { get; set; }
-		public string AppRoot { get; set; }
-		public IPrincipal PrincipalUser { get; set; }
-		public bool IsLocalhost { get; set; }
-
-		// Other properties that can be useful.  These can be set by override AuthorizeRequest() in your DAL implementation class.
-		// Otherwise they will just have null values and won't be used.
-		public object UserID { get; set; }
-		public bool IsDeveloper { get; set; }
-
+		public NoefUserRequest Req { get; set; }
 
 		/// <summary>
 		/// Can be assigned a transaction that will be used for ALL noef based queries.
@@ -48,14 +36,20 @@ namespace Noef
 
 		public IList<IDbConnection> OpenedConnections { get; private set; } 
 
-		protected NoefDal(HttpContext context)
+		protected NoefDal()
 		{
 			m_uniqueDalKey = GetType().FullName;
 			OpenedConnections = new List<IDbConnection>();
 			DefaultTimeout = 30;
 
+			HttpContext context = HttpContext.Current;
 			HttpApplication app = context == null ? null : context.ApplicationInstance;
+
+			// virtual calls here should be ok, because we'll always be using the most specific subclass.
+// ReSharper disable DoNotCallOverridableMethodsInConstructor
+			Req = CreateUserRequest();
 			AuthorizeRequest(app);
+// ReSharper restore DoNotCallOverridableMethodsInConstructor
 		}
 
 		public void Dispose()
@@ -69,108 +63,36 @@ namespace Noef
 			return asm;
 		}
 
+		public string AsmFileVersionString()
+		{
+			if (m_versionString != null)
+				return m_versionString;
+			Assembly asm = Assembly.GetExecutingAssembly();
+			FileVersionInfo info = FileVersionInfo.GetVersionInfo(asm.Location);
+			m_versionString = info.ProductVersion;
+			return m_versionString;	
+		}
+
+		public virtual NoefUserRequest CreateUserRequest()
+		{
+			return new NoefUserRequest(this);
+		}
+
+		public virtual bool IsCurrentUserAdmin()
+		{
+			return false;
+		}
+
 		public virtual void AuthorizeRequest(HttpApplication app)
 		{
-			if (app != null)
-			{
-				IPAddress = GetIPAddress();
-
-				AppRoot = app.Context.Request.ApplicationPath;
-				Debug.Assert(AppRoot != null);
-				if (!AppRoot.EndsWith("/"))
-					AppRoot += "/";
-
-				// we'll consider it localhost if the entire word is found with word boundaries in the hostname.
-				Regex rxLocal = new Regex(@"\blocalhost\b");
-				string hostname = app.Context.Request.Url.Host.ToLower();
-				IsLocalhost = rxLocal.IsMatch(hostname);
-				if (app.User != null)
-				{
-					PrincipalUser = app.User;
-					UserName = app.User.Identity.Name;
-				}
-			}
+			// stub
 		}
 
 		public virtual void EndRequest(HttpApplication app)
 		{
+			// Will call CloseConnections()
 			Dispose();
 		}
-
-#if !NET2 // Lazy<T> is .NET 4+
-		/// <summary>
-		/// setup() will be called right away, on a separate thread.
-		/// A Lazy{T} object is created, and fnValue() will be called when that lazy is evaluated.
-		/// But before fnValue() will be called, the separate thread that called setup() will be joined to the current (main) thread.
-		/// This guarantees that setup() FINISHES before fnValue() is called.
-		/// This is a convenience method for filling a specific kind of gap that occurs commonly enough that bundling it this way is nice.
-		/// </summary>
-		public static Lazy<T> ThreadLazyPattern<T>(Action setup, Func<T> fnValue)
-		{
-			// create a separate thread, where setup() is called right away
-			HttpContext mainThreadContext = HttpContext.Current;
-			Thread t = new Thread(() =>
-			{
-				// Need access to the DAL.  Note Noef hasn't been thread-safety tested or evaluated yet.
-				HttpContext.Current = mainThreadContext;
-				setup();
-			}) { Name = "ThreadLazyPattern-setup-" + typeof (T).Name };
-			t.Start();
-
-			// set up our wrapper value factory, that will join the "setup" thread in
-			Func<T> fnValueWrapper = () =>
-			                         {
-				                         t.Join();
-										 // call the actual fnValue function
-				                         T value = fnValue();
-				                         return value;
-			                         };
-
-			// set up the lazy object
-			// TODO: there is another constructor that takes a bool, "isThreadSafe" as a 2nd arg. Need to look that up.
-			Lazy<T> lazy = new Lazy<T>(fnValueWrapper);
-			return lazy;
-		}
-
-
-		/// <summary>
-		/// setup() will be called right away, on a separate thread.
-		/// A Lazy{T} object is created, and fnValue() will be called when that lazy is evaluated.
-		/// But before fnValue() will be called, the separate thread that called setup() will be joined to the current (main) thread.
-		/// This guarantees that setup() FINISHES before fnValue() is called.
-		/// This is a convenience method for filling a specific kind of gap that occurs commonly enough that bundling it this way is nice.
-		/// </summary>
-		public static Lazy<T> ThreadLazyPattern<T>(Action setup, ref T obj)
-		{
-			// create a separate thread, where setup() is called right away
-			HttpContext mainThreadContext = HttpContext.Current;
-			Thread t = new Thread(() =>
-			{
-				// Need access to the DAL.  Note Noef hasn't been thread-safety tested or evaluated yet.
-				HttpContext.Current = mainThreadContext;
-				setup();
-			}) { Name = "ThreadLazyPattern-setup-" + typeof (T).Name };
-			t.Start();
-
-			// TODO: Does this do what I want?
-			T obj2 = obj;
-
-			// set up our wrapper value factory, that will join the "setup" thread in
-			Func<T> fnValueWrapper = () =>
-			{
-				// make sure setup() has FINISHED (it has the responsibility of assigning obj)
-				t.Join();
-
-				// call the actual fnValue function
-				return obj2;
-			};
-
-			// set up the lazy object
-			// TODO: there is another constructor that takes a bool, "isThreadSafe" as a 2nd arg. Need to look that up.
-			Lazy<T> lazy = new Lazy<T>(fnValueWrapper);
-			return lazy;
-		}
-#endif
 
 		public virtual string GetConnectionString(string connectionStringName = null)
 		{
@@ -288,34 +210,6 @@ namespace Noef
 					sb.AppendLine("Inner exception:");
 			}
 			return sb.ToString();
-		}
-
-
-		public static string GetIPAddress()
-		{
-			if (HttpContext.Current == null)
-				return null;
-
-			// Look for a proxy address first
-			string ip = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-
-			// If there is no proxy, get the standard remote address
-			if (ip == null)
-			{
-				ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-			}
-			else
-			{
-				if ((string.IsNullOrEmpty(ip) || ip.ToLower() == "unknown"))
-				{
-					ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-				}
-				else
-				{
-					ip = "from proxy  " + ip;
-				}
-			}
-			return ip;
 		}
 
 		/// <summary>

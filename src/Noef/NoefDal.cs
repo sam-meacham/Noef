@@ -66,12 +66,31 @@ namespace Noef
 			return m_versionString;	
 		}
 
-		public virtual NoefUserRequest CreateUserRequest()
+		public NoefUserRequest CreateUserRequest()
 		{
 			HttpContext context = HttpContext.Current;
 			HttpApplication app = context == null ? null : context.ApplicationInstance;
 			AuthorizeRequest(app);
-			return new NoefUserRequest(this);
+			Type type = GetUserRequestType();
+
+			NoefUserRequest req;
+			// will call a default constructor which must take a dal object in
+			try
+			{
+				req = (NoefUserRequest) Activator.CreateInstance(type, this);
+			}
+			catch (Exception ex)
+			{
+				throw new Exception(
+					"overriding GetUserRequestType() requires a type with a single NoefDal (or subclass) obj as a constructor param",
+					ex);
+			}
+			return req;
+		}
+
+		public virtual Type GetUserRequestType()
+		{
+			return typeof (NoefUserRequest);
 		}
 
 		public virtual bool IsCurrentUserAdmin()

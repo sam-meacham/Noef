@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Noef</id>
-        <version>1.1.7</version>
+        <version>1.1.8</version>
         <authors>Sam Meacham</authors>
         <owners>Sam Meacham</owners>
         <licenseUrl>https://github.com/sam-meacham/Noef/blob/master/LICENSE</licenseUrl>
@@ -13,8 +13,7 @@
         <language>en-US</language>
         <tags>ado ado.net sql orm micro-orm microorm mapping dtos dal data-access</tags>
 		<releaseNotes>
-Testing 1.1.7 locally
-* NoefDal.Req is now a Lazy&lt;NoefUserRequest&gt;
+Fixing how to subclass NoefUserRequest and still "own" creation from NoefDal. Currently trying with virtual GetUserRequestType() and Activator.CreateInstance
 		</releaseNotes>
 
 		<!-- noef currently has no nuget dependencies. Though I may add Newtonsoft.Json for making things [JsonIgnore]able via codegen. -->

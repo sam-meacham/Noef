@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Noef</id>
-        <version>1.1.4</version>
+        <version>1.1.5</version>
         <authors>Sam Meacham</authors>
         <owners>Sam Meacham</owners>
         <licenseUrl>https://github.com/sam-meacham/Noef/blob/master/LICENSE</licenseUrl>
@@ -12,6 +12,12 @@
 		<summary>Micro-ORM/utility library for ADO.NET with focus on simple mapping and code generation</summary>
         <language>en-US</language>
         <tags>ado ado.net sql orm micro-orm microorm mapping dtos dal data-access</tags>
+		<releaseNotes>
+* Made singleton usage optional from the noef-config (for legacy transition)
+* NoefDal() ctor now requires you pass in HttpContext
+* Removed some static caching mech in NoefDal for connection strings (the web.config is already cached)
+* Added NoefDal.GetDalAssembly()
+		</releaseNotes>
 
 		<!-- noef currently has no nuget dependencies. Though I may add Newtonsoft.Json for making things [JsonIgnore]able via codegen. -->
 

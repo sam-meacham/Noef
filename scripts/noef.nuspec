@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Noef</id>
-        <version>1.1.10</version>
+        <version>1.1.11</version>
         <authors>Sam Meacham</authors>
         <owners>Sam Meacham</owners>
         <licenseUrl>https://github.com/sam-meacham/Noef/blob/master/LICENSE</licenseUrl>

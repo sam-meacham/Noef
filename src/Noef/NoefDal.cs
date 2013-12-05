@@ -42,7 +42,7 @@ namespace Noef
 			m_uniqueDalKey = GetType().FullName;
 			OpenedConnections = new List<IDbConnection>();
 			DefaultTimeout = 30;
-			Req = new Lazy<NoefUserRequest>(CreateUserRequest);
+			Req = new Lazy<NoefUserRequest>(() => CreateUserRequest());
 		}
 
 		public void Dispose()

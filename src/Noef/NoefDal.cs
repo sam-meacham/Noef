@@ -26,7 +26,8 @@ namespace Noef
 		public abstract NoefDbType DbType { get; }
 		private readonly string m_uniqueDalKey;
 		public int DefaultTimeout { get; set; }
-		public NoefUserRequest Req { get; set; }
+
+		public Lazy<NoefUserRequest> Req { get; set; }
 
 		/// <summary>
 		/// Can be assigned a transaction that will be used for ALL noef based queries.
@@ -41,15 +42,7 @@ namespace Noef
 			m_uniqueDalKey = GetType().FullName;
 			OpenedConnections = new List<IDbConnection>();
 			DefaultTimeout = 30;
-
-			HttpContext context = HttpContext.Current;
-			HttpApplication app = context == null ? null : context.ApplicationInstance;
-
-			// virtual calls here should be ok, because we'll always be using the most specific subclass.
-// ReSharper disable DoNotCallOverridableMethodsInConstructor
-			Req = CreateUserRequest();
-			AuthorizeRequest(app);
-// ReSharper restore DoNotCallOverridableMethodsInConstructor
+			Req = new Lazy<NoefUserRequest>(CreateUserRequest);
 		}
 
 		public void Dispose()
@@ -75,6 +68,9 @@ namespace Noef
 
 		public virtual NoefUserRequest CreateUserRequest()
 		{
+			HttpContext context = HttpContext.Current;
+			HttpApplication app = context == null ? null : context.ApplicationInstance;
+			AuthorizeRequest(app);
 			return new NoefUserRequest(this);
 		}
 

@@ -78,7 +78,7 @@
     <Compile Include="ObjectExtensions.cs" />
     <Compile Include="TableMetadata.cs" />
     <Compile Include="ThreadLazyPattern.cs" />
-    <Compile Include="UserRequest.cs" />
+    <Compile Include="NoefUserRequest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TODO.txt" />

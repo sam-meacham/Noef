@@ -71,13 +71,13 @@ namespace Noef
 			HttpContext context = HttpContext.Current;
 			HttpApplication app = context == null ? null : context.ApplicationInstance;
 			AuthorizeRequest(app);
-			Type type = GetUserRequestType();
 
 			NoefUserRequest req;
 			// will call a default constructor which must take a dal object in
 			try
 			{
-				req = (NoefUserRequest) Activator.CreateInstance(type, this);
+				Type reqType = GetUserRequestType();
+				req = (NoefUserRequest) Activator.CreateInstance(reqType, this);
 			}
 			catch (Exception ex)
 			{
@@ -429,9 +429,11 @@ namespace Noef
 		// *** http://www.toptensoftware.com/petapoco/ ************************************
 		// ********************************************************************************
 
+// ReSharper disable StaticFieldInGenericType
 		private static readonly Regex rxColumns = new Regex(@"\A\s*SELECT\s+((?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|.)*?)(?<!,\s+)\bFROM\b", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
 		private static readonly Regex rxOrderBy = new Regex(@"\bORDER\s+BY\s+(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\w\(\)\.])+(?:\s+(?:ASC|DESC))?(?:\s*,\s*(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\w\(\)\.])+(?:\s+(?:ASC|DESC))?)*", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
 		private static readonly Regex rxDistinct = new Regex(@"\ADISTINCT\s", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
+// ReSharper restore StaticFieldInGenericType
 
 		private static bool splitSqlForPaging(string originalQuery, out string sqlCount, out string columnsList, out string sqlOrderBy)
 		{

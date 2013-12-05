@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,14 +22,10 @@ namespace Noef
 {
 	public abstract class NoefDal : IDisposable
 	{
-		private static readonly IDictionary<string, string> s_connectionStrings = new Dictionary<string, string>();
 		public abstract string ConnectionStringName { get; }
 		public abstract NoefDbType DbType { get; }
 		private readonly string m_uniqueDalKey;
-		public static readonly object s_objSync = new object();
-
 		public int DefaultTimeout { get; set; }
-
 
 		// The IHttpModule will also populate these (as best as it can)
 		public string UserName { get; set; }
@@ -51,11 +48,14 @@ namespace Noef
 
 		public IList<IDbConnection> OpenedConnections { get; private set; } 
 
-		protected NoefDal()
+		protected NoefDal(HttpContext context)
 		{
 			m_uniqueDalKey = GetType().FullName;
 			OpenedConnections = new List<IDbConnection>();
 			DefaultTimeout = 30;
+
+			HttpApplication app = context == null ? null : context.ApplicationInstance;
+			AuthorizeRequest(app);
 		}
 
 		public void Dispose()
@@ -63,9 +63,10 @@ namespace Noef
 			CloseConnections();
 		}
 
-		public virtual void Init(HttpApplication app)
+		public Assembly GetDalAssembly()
 		{
-			// stub method...
+			Assembly asm = GetType().Assembly;
+			return asm;
 		}
 
 		public virtual void AuthorizeRequest(HttpApplication app)
@@ -176,22 +177,10 @@ namespace Noef
 			if (String.IsNullOrEmpty(connectionStringName))
 				connectionStringName = ConnectionStringName;
 
-			// dirty (non thread-safe check)
-			if (s_connectionStrings.ContainsKey(connectionStringName))
-				return s_connectionStrings[connectionStringName];
-
-			lock(s_objSync)
-			{
-				// thread-safe check
-				if (s_connectionStrings.ContainsKey(connectionStringName))
-					return s_connectionStrings[connectionStringName];
-
-				ConnectionStringSettings settings = ConfigurationManager.ConnectionStrings[connectionStringName];
-				if (settings == null)
-					throw new Exception("No connection string found with name " + connectionStringName);
-				s_connectionStrings.Add(connectionStringName, settings.ConnectionString);
-				return settings.ConnectionString;
-			}
+			ConnectionStringSettings settings = ConfigurationManager.ConnectionStrings[connectionStringName];
+			if (settings == null)
+				throw new Exception("No connection string found with name " + connectionStringName);
+			return settings.ConnectionString;
 		}
 
 		/// <summary>

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<!-- Project specifics (must be first, lam.props will use the values declared here) -->
+	<PropertyGroup>
+		<ProjectName>Noef.SourceDistro</ProjectName>
+		<ProjectFilename>Noef.csproj</ProjectFilename>
+	</PropertyGroup>
+
+	<!-- import default properties, tasks and targets -->
+	<Import Project="lam.props" />
+
+	<!-- override some of the default properties -->
+	<PropertyGroup>
+		<!-- Noef.SourceDistro is a....source distro! -->
+		<DoSourceDistro>true</DoSourceDistro>
+		<ProjSrcDir>../src/Noef/</ProjSrcDir>
+		<ProjFile>../src/Noef/Noef.csproj</ProjFile>
+	</PropertyGroup>
+
+	<Import Project="lam.tasks" />
+	<Import Project="lam.targets" />
+
+</Project>

@@ -94,6 +94,8 @@ order by
 			while (reader.Read())
 			{
 				object[] row = new object[reader.FieldCount];
+				// we just want to populate row, I don't care about the number returned
+				// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
 				reader.GetValues(row);
 				rows.Add(row);
 			}

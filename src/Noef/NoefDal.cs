@@ -10,8 +10,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web;
-using System.Web.Security;
 #if SQL_CE
 using System.Data.SqlServerCe;
 #endif
@@ -27,8 +25,6 @@ namespace Noef
 		private readonly string m_uniqueDalKey;
 		public int DefaultTimeout { get; set; }
 
-		public Lazy<NoefUserRequest> Req { get; set; }
-
 		/// <summary>
 		/// Can be assigned a transaction that will be used for ALL noef based queries.
 		/// Make SURE you assign this to null in the finally clause of your try/catch/finally!
@@ -42,7 +38,6 @@ namespace Noef
 			m_uniqueDalKey = GetType().FullName;
 			OpenedConnections = new List<IDbConnection>();
 			DefaultTimeout = 30;
-			Req = new Lazy<NoefUserRequest>(() => CreateUserRequest());
 		}
 
 		public void Dispose()
@@ -64,49 +59,6 @@ namespace Noef
 			FileVersionInfo info = FileVersionInfo.GetVersionInfo(asm.Location);
 			m_versionString = info.ProductVersion;
 			return m_versionString;	
-		}
-
-		public NoefUserRequest CreateUserRequest()
-		{
-			HttpContext context = HttpContext.Current;
-			HttpApplication app = context == null ? null : context.ApplicationInstance;
-			AuthorizeRequest(app);
-
-			NoefUserRequest req;
-			// will call a default constructor which must take a dal object in
-			try
-			{
-				Type reqType = GetUserRequestType();
-				req = (NoefUserRequest) Activator.CreateInstance(reqType, this);
-			}
-			catch (Exception ex)
-			{
-				throw new Exception(
-					"overriding GetUserRequestType() requires a type with a single NoefDal (or subclass) obj as a constructor param",
-					ex);
-			}
-			return req;
-		}
-
-		public virtual Type GetUserRequestType()
-		{
-			return typeof (NoefUserRequest);
-		}
-
-		public virtual bool IsCurrentUserAdmin()
-		{
-			return false;
-		}
-
-		public virtual void AuthorizeRequest(HttpApplication app)
-		{
-			// stub
-		}
-
-		public virtual void EndRequest(HttpApplication app)
-		{
-			// Will call CloseConnections()
-			Dispose();
 		}
 
 		public virtual string GetConnectionString(string connectionStringName = null)
@@ -207,39 +159,6 @@ namespace Noef
 			}
 			OpenedConnections.Clear();
 		}
-
-		public static string GetCompleteStackTrace(Exception ex)
-		{
-			if (ex == null)
-				return null;
-
-			StringBuilder sb = new StringBuilder();
-			while (ex != null)
-			{
-				sb.AppendLine("Type: " + ex.GetType().Name);
-				sb.AppendLine("Message: " + ex.Message);
-				sb.AppendLine("Stack Trace:");
-				sb.AppendLine(ex.StackTrace).AppendLine();
-				ex = ex.InnerException;
-				if (ex != null)
-					sb.AppendLine("Inner exception:");
-			}
-			return sb.ToString();
-		}
-
-		/// <summary>
-		/// Checks to see if the current request can skip authorization, either because context.SkipAuthorization is true,
-		/// or because UrlAuthorizationModule.CheckUrlAccessForPrincipal() returns true for the current request/user/url.
-		/// </summary>
-		/// <returns></returns>
-		public bool SkipUrlAuth()
-		{
-			HttpContext context = HttpContext.Current;
-			string path = context.Request.AppRelativeCurrentExecutionFilePath;
-			Debug.Assert(path != null);
-			return context.SkipAuthorization || UrlAuthorizationModule.CheckUrlAccessForPrincipal(path, context.User, context.Request.RequestType);
-		}
-
 
 		public IDbTransaction NewTransaction(IDbConnection cn = null)
 		{

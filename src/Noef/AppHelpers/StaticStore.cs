@@ -1,10 +1,6 @@
 ﻿using System;
-#if !NET2
 using System.Collections.Concurrent;
-#endif
-using System.Collections.Generic;
 using System.Linq;
-
 
 namespace Noef
 {
@@ -16,13 +12,8 @@ namespace Noef
 	/// </summary>
 	public static class StaticStore
 	{
-#if NET2
-		private static readonly Dictionary<string, object> s_cache = new Dictionary<string, object>();
-		private static readonly Dictionary<string, DateTime> s_cacheExpirations = new Dictionary<string, DateTime>();
-#else
 		private static readonly ConcurrentDictionary<string, object> s_cache = new ConcurrentDictionary<string, object>();
 		private static readonly ConcurrentDictionary<string, DateTime> s_cacheExpirations = new ConcurrentDictionary<string, DateTime>();
-#endif
 
 		public static string[] AllKeys()
 		{
@@ -74,11 +65,7 @@ namespace Noef
 				return;
 
 			object throwAwayValue;
-#if NET2
-			if (!s_cache.Remove(key))
-#else
 			if (!s_cache.TryRemove(key, out throwAwayValue))
-#endif
 			{
 				// For some reason it couldn't remove it. So just set the value for that key to null, which will have the same effect (but the key is still annoyingly present - not the end of the world)
 				s_cache[key] = null;
@@ -87,11 +74,7 @@ namespace Noef
 			if (s_cacheExpirations.ContainsKey(key))
 			{
 				DateTime throwAwayDate;
-#if NET2
-				if (!s_cacheExpirations.Remove(key))
-#else
 				if (!s_cacheExpirations.TryRemove(key, out throwAwayDate))
-#endif
 				{
 					// For some reason it couldn't remove it. So just set the value for that key to DateTime.Min, which will always report as expired.
 					s_cacheExpirations[key] = DateTime.MinValue;

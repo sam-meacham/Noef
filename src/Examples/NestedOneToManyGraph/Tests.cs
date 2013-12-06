@@ -9,12 +9,12 @@ namespace Noef.Examples.NestedOneToManyGraph
 	[TestFixture]
     public class Tests
     {
-		private MyDalImpl m_dal;
+		private MyDal m_dal;
 
 		[SetUp]
 		public void Setup()
 		{
-			m_dal = new MyDalImpl();
+			m_dal = new MyDal();
 		}
 
 		[TearDown]

@@ -89,7 +89,7 @@ namespace Noef
 
 		public static bool IsNullable(Type type)
 		{
-			bool isNullable = type.IsGenericType && type.FullName != null && type.FullName.StartsWith("System.Nullable");
+			bool isNullable = type.IsGenericType && type.FullName.StartsWith("System.Nullable");
 			return isNullable;
 		}
 

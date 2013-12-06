@@ -4,4 +4,7 @@
 	
 	<!-- import ms build extensions (for some reason I had to specify the 64 one specifically) -->
 	<Import Project="$(MSBuildExtensionsPath64)\ExtensionPack\4.0\MSBuild.ExtensionPack.tasks"/>
+
+	<!-- version number target -->
+	<Import Project="$(MSBuildExtensionsPath64)\ExtensionPack\4.0\MSBuild.ExtensionPack.VersionNumber.targets"/>
 </Project>

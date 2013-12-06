@@ -2,6 +2,7 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<!-- default settings for CBRE LAM project build -->
 	<PropertyGroup>
+		<VisualStudioVersion>11.0</VisualStudioVersion>
 		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 
@@ -18,6 +19,7 @@
 		<NuspecFile>$(ProjectName).nuspec</NuspecFile>
 		<NupkgBasePath>..\deploy\$(ProjectName)\</NupkgBasePath>
 		<NugetLocalUrl>http://localhost.cbre.com/nug/</NugetLocalUrl>
+		<NugetDevUrl>http://dev-maps.cbre.com/nugdev/</NugetDevUrl>
 		<NugetProdUrl>http://dev-maps.cbre.com/nug/</NugetProdUrl>
 		<NupkgOutputFile>This will be updated dynamically from the PackNuget target</NupkgOutputFile>
 		

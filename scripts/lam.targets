@@ -18,12 +18,12 @@
 		 -->
 		<Message Text="Updating AssemblyInfo files to version: $(LamVersion) for @(AssemblyInfoFiles->Count()) files" />
 		<Message Text="@(AssemblyInfoFiles)" />
-		<MSBuild.ExtensionPack.Framework.AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)" AssemblyVersion="$(LamVersion)" AssemblyFileVersion="$(LamVersion)"/>
+		<!--<MSBuild.ExtensionPack.Framework.AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)" AssemblyVersion="$(LamVersion)" AssemblyFileVersion="$(LamVersion)"/>-->
 	</Target>
 
 
 	<!-- Build the project -->
-	<Target Name="Build" DependsOnTargets="UpdateAssemblyVersion">
+	<Target Name="Build" DependsOnTargets="UpdateAssemblyVersion;UpdateAssemblyInfoFiles">
 		<Message Text="Version number (before build): $(LamVersion)" />
 		<MSBuild Projects="$(ProjFile)" Properties="Configuration=$(Configuration)" Targets="Build"/>
 	</Target>
@@ -69,6 +69,13 @@
 		<Exec Command="NuGet.exe push $(NupkgOutputFile) -Source $(NugetLocalUrl)" />
 	</Target>
 
+	
+	<!-- push nuget dev -->
+	<Target Name="PushNugetDev" DependsOnTargets="PackNuget">
+		<Message Text="Pushing Nupkg file to dev: $(NupkgOutputFile) => $(NugetDevUrl)" />
+		<Exec Command="NuGet.exe push $(NupkgOutputFile) -Source $(NugetDevUrl)" />
+	</Target>
+
 
 	<!-- push nuget prod -->
 	<Target Name="PushNugetProd" DependsOnTargets="PackNuget">
@@ -76,4 +83,7 @@
 		<Exec Command="NuGet.exe push $(NupkgOutputFile) -Source $(NugetProdUrl)" />
 	</Target>
 
+	<!-- public web project to dev -->
+	<Target Name="PubWebDev" DependsOnTargets="Build">
+	</Target>
 </Project>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace Noef
 {
@@ -41,5 +42,26 @@ namespace Noef
 		{
 			return String.IsNullOrEmpty(s) ? null : s;
 		}
+
+
+		public static string GetCompleteStackTrace(this Exception ex)
+		{
+			if (ex == null)
+				return null;
+
+			StringBuilder sb = new StringBuilder();
+			while (ex != null)
+			{
+				sb.AppendLine("Type: " + ex.GetType().Name);
+				sb.AppendLine("Message: " + ex.Message);
+				sb.AppendLine("Stack Trace:");
+				sb.AppendLine(ex.StackTrace).AppendLine();
+				ex = ex.InnerException;
+				if (ex != null)
+					sb.AppendLine("Inner exception:");
+			}
+			return sb.ToString();
+		}
+
 	}
 }

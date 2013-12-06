@@ -505,6 +505,7 @@ namespace Noef
 			int i = 0;
 			try
 			{
+				// TODO: need a unit test that hits this branch. Not sure if I'm supposed to be using numProps or tmeta.Columns.Count below...
 				int numProps = Math.Min(reader.FieldCount, tmeta.Columns.Count); // don't try to hydrate more properties than we have columns!
 				for (i = 0; i < tmeta.Columns.Count; i++)
 				{

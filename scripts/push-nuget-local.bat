@@ -1,1 +1,0 @@
-NuGet.exe push *.nupkg -Source http://localhost.cbre.com/nug/

@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<!-- Project specifics (must be first, lam.props will use the values declared here) -->
+	<PropertyGroup>
+		<ProjectName>NoefGen</ProjectName>
+		<ProjectFilename>NoefGen.csproj</ProjectFilename>
+	</PropertyGroup>
+
+	<!-- import default properties, tasks and targets -->
+	<Import Project="lam.props" />
+
+
+	<Import Project="lam.tasks" />
+	<Import Project="lam.targets" />
+
+	<Target Name="CreateNoefGenMerged" DependsOnTargets="Build" BeforeTargets="PackNuget">
+		<PropertyGroup>
+			<OutDir>../deploy/NoefGen/content/Noef/</OutDir>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<FilesToMerge Include="../src/NoefGen/bin/$(Configuration)/NoefGen.exe" />
+			<FilesToMerge Include="../src/NoefGen/bin/$(Configuration)/Noef.CodeGen.dll" />
+		</ItemGroup>
+
+		<Message Text="files: @(FilesToMerge)" />
+
+		<Error Condition="!Exists(%(FilesToMerge.FullPath))" />
+
+		<MakeDir Directories="$(OutDir)" />
+
+		<MSBuild.ExtensionPack.Framework.ILMerge
+			InputAssemblies="@(FilesToMerge)"
+			OutputFile="$(OutDir)NoefGen.exe"
+			DebugInfo="false"
+			TargetPlatformVersion="v4"
+			TargetPlatformDirectory="C:\Windows\Microsoft.NET\Framework64\v4.0.30319"
+			Version="$(LamVersion)"
+		/>
+	</Target>
+
+</Project>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Web.Security;
 
 namespace Noef
 {
@@ -22,58 +23,69 @@ namespace Noef
 		public IPrincipal PrincipalUser { get; set; }
 		public string Username { get; set; }
 
-		public string IPAddress { get; set; }
 		public string AppRoot { get; set; }
 		public string Hostname { get; set; }
 		public string HostRoot { get; set; }
-		public bool IsAdmin { get; set; }
-		public bool IsLocalhost { get; set; }
+
+		public HttpContext Context { get; private set; }
+		public HttpApplication App { get; private set; }
+		public HttpRequest Request { get; private set; }
+		public HttpResponse Response { get; private set; }
 
 		/// <summary>
 		/// Comma separated list of usernames in web.config appSettings under "NoefAdmins" (convention, baby)
 		/// </summary>
 		public string[] NoefAdmins { get; private set; }
 
-		public NoefUserRequest(NoefDal dal)
+		public NoefUserRequest()
 		{
-			HttpContext ctx = HttpContext.Current;
-			HttpApplication app = ctx == null ? null : ctx.ApplicationInstance;
-			IPAddress = GetIPAddress();
+			Context = HttpContext.Current;
+			if (Context != null)
+			{
+				Request = Context.Request;
+				Response = Context.Response;
+				App = Context.ApplicationInstance;
+			}
 
-			string adminsList = ConfigurationManager.AppSettings["NoefAdmins"] ?? "";
-			NoefAdmins = adminsList
+			NoefAdmins = Cfg("NoefAdmins")
 				.Split(new [] {','}, StringSplitOptions.RemoveEmptyEntries)
 				.Select(a => a.ToLower())
 				.ToArray();
 
-			if (app != null)
+			if (App != null)
 			{
-				var r = app.Request;
+				var r = App.Request;
 				Hostname = r.Url.Host;
 				HostRoot = r.Url.Scheme + Uri.SchemeDelimiter + r.Url.Host +
 					(r.Url.IsDefaultPort ? "" : ":" + r.Url.Port);
 
 				// AppRoot will always end with a trailing /
-				AppRoot = app.Context.Request.ApplicationPath;
+				AppRoot = App.Context.Request.ApplicationPath;
 				Debug.Assert(AppRoot != null);
 				if (!AppRoot.EndsWith("/"))
 					AppRoot += "/";
 
-				IsLocalhost = RX_LOCALHOST.IsMatch(Hostname.ToLower());
-
-				if (app.User != null)
+				if (App.User != null)
 				{
-					PrincipalUser = app.User;
-					Username = app.User.Identity.Name;
+					PrincipalUser = App.User;
+					Username = App.User.Identity.Name;
 				}
-
-				// Roles are fetched from the DB at login, and stored in the user's auth cookie (encrypted)
-				// SentryMembershipProvider is smart about how it accesses the values, but a user will have to
-				// log out and back in if their roles change.
-
-				IsAdmin = NoefAdmins.Contains(Username, StringComparer.OrdinalIgnoreCase)
-					|| dal.IsCurrentUserAdmin();
 			}
+		}
+
+		public string Cfg(string appSettingKey)
+		{
+			return ConfigurationManager.AppSettings[appSettingKey] ?? "";
+		}
+
+		public virtual bool IsAdmin()
+		{
+			return NoefAdmins.Contains(Username, StringComparer.OrdinalIgnoreCase);
+		}
+
+		public bool IsLocalhost()
+		{
+			return RX_LOCALHOST.IsMatch(Hostname.ToLower());
 		}
 
 		public string GetAbsUrlRoot()
@@ -81,24 +93,37 @@ namespace Noef
 			return HostRoot + AppRoot;
 		}
 
-		public static string GetIPAddress()
+		/// <summary>
+		/// Checks to see if the current request can skip authorization, either because context.SkipAuthorization is true,
+		/// or because UrlAuthorizationModule.CheckUrlAccessForPrincipal() returns true for the current request/user/url.
+		/// </summary>
+		/// <returns></returns>
+		public bool SkipUrlAuth()
 		{
-			if (HttpContext.Current == null)
+			HttpContext context = HttpContext.Current;
+			string path = context.Request.AppRelativeCurrentExecutionFilePath;
+			Debug.Assert(path != null);
+			return context.SkipAuthorization || UrlAuthorizationModule.CheckUrlAccessForPrincipal(path, context.User, context.Request.RequestType);
+		}
+
+		public string GetIPAddress()
+		{
+			if (Context == null)
 				return null;
 
 			// Look for a proxy address first
-			string ip = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+			string ip = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
 
 			// If there is no proxy, get the standard remote address
 			if (ip == null)
 			{
-				ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
+				ip = Request.ServerVariables["REMOTE_ADDR"];
 			}
 			else
 			{
 				if ((string.IsNullOrEmpty(ip) || ip.ToLower() == "unknown"))
 				{
-					ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
+					ip = Request.ServerVariables["REMOTE_ADDR"];
 				}
 				else
 				{

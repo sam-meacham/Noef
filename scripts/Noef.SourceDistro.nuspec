@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
-        <id>Noef</id>
-        <version>1.1.10</version>
+        <id>Noef.SourceDistro</id>
+        <version>2.0.0</version>
         <authors>Sam Meacham</authors>
         <owners>Sam Meacham</owners>
         <licenseUrl>https://github.com/sam-meacham/Noef/blob/master/LICENSE</licenseUrl>
@@ -13,12 +13,8 @@
         <language>en-US</language>
         <tags>ado ado.net sql orm micro-orm microorm mapping dtos dal data-access</tags>
 		<releaseNotes>
-Testing 1.1.10 locally
+
 		</releaseNotes>
-		
-		<references>
-			<!-- None that we add currently, though Noef.dll will be in the packages folder. Noef is usually a source distro via NoefGen.exe -->
-		</references>
 
 		<!-- noef currently has no nuget dependencies. Though I may add Newtonsoft.Json for making things [JsonIgnore]able via codegen. -->
 
@@ -27,7 +23,6 @@ Testing 1.1.10 locally
             <frameworkAssembly assemblyName="System.Configuration" targetFramework=".NETFramework4.5.1" />
             <frameworkAssembly assemblyName="System.Core" targetFramework=".NETFramework4.5.1" />
             <frameworkAssembly assemblyName="System.Data" targetFramework=".NETFramework4.5.1" />
-            <frameworkAssembly assemblyName="System.Data.SqlServerCe" targetFramework=".NETFramework4.5.1" />
             <frameworkAssembly assemblyName="System.Web" targetFramework=".NETFramework4.5.1" />
         </frameworkAssemblies>
     </metadata>

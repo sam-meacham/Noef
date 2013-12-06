@@ -9,12 +9,6 @@ namespace Noef.CodeGen.Generators
 <noefConfig xmlns=""urn:noef-config-1.1"">
 	<appConfig>c:/inetpub/wwwroot/web.config</appConfig>
 
-	<!-- Settings for your noef distribution, which will be a single .cs file -->
-	<!-- When running NoefGen.exe, include the ""NoefDistro"" type to generate this -->
-	<noef>
-		<namespace><%= NoefNamespace %></namespace>
-	</noef>
-
 	<!-- Settings for your DAL (data access layer) class, which will be a single .cs file -->
 	<!-- When running NoefGen.exe, include the ""Dal"" type to generate this -->
 	<dal>
@@ -61,7 +55,6 @@ namespace Noef.CodeGen.Generators
 		{
 			StringBuilder sb = new StringBuilder(TEMPLATE);
 			sb
-				.Replace("<%= NoefNamespace %>", Settings.NoefNamespace)
 				.Replace("<%= DalClassName %>", Settings.DalClassName)
 				.Replace("<%= DalNamespace %>", Settings.DalNamespace)
 				.Replace("<%= DtoNamespace %>", Settings.DtoNamespace)

@@ -18,7 +18,7 @@
 		<NuspecFile>$(ProjectName).nuspec</NuspecFile>
 		<NupkgBasePath>..\deploy\$(ProjectName)\</NupkgBasePath>
 		<NugetLocalUrl>http://localhost.cbre.com/nug/</NugetLocalUrl>
-		<NugetProdUrl>http://localhost.cbre.com/nug/</NugetProdUrl>
+		<NugetProdUrl>http://dev-maps.cbre.com/nug/</NugetProdUrl>
 		<NupkgOutputFile>This will be updated dynamically from the PackNuget target</NupkgOutputFile>
 		
 		<DoSourceDistro>false</DoSourceDistro>

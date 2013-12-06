@@ -82,6 +82,11 @@
   <ItemGroup>
     <Content Include="TODO.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\scripts\Noef.SourceDistro.proj">
+      <Link>Noef.SourceDistro.proj</Link>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

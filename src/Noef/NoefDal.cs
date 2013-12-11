@@ -55,7 +55,7 @@ namespace Noef
 		{
 			if (m_versionString != null)
 				return m_versionString;
-			Assembly asm = Assembly.GetExecutingAssembly();
+			Assembly asm = GetDalAssembly();
 			FileVersionInfo info = FileVersionInfo.GetVersionInfo(asm.Location);
 			m_versionString = info.ProductVersion;
 			return m_versionString;	

@@ -206,10 +206,7 @@ namespace Noef
 			// NOTE: If Noef is being used as an assembly reference and NOT a single file distribution, and the Metadata is NOT in the same assembly as the type
 			// (could be the case if the type is in a separate Dtos project), this won't be able to find the Metadata class!
 
-			Assembly executing = Assembly.GetExecutingAssembly();
-			List<Type> typesInCurrent = ReflectionHelper.GetTypesWithAttribute(executing, typeof(MetadataClassAttribute)).ToList();
-
-
+			List<Type> typesInCurrent = ReflectionHelper.GetTypesWithAttribute(type.Assembly, typeof(MetadataClassAttribute)).ToList();
 
 			if (typesInCurrent.Count > 0)
 			{

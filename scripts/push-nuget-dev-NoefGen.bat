@@ -1,1 +1,1 @@
-msbuild NoefGen.proj /t:PushNugetProd
+msbuild NoefGen.proj /t:PushNugetDev

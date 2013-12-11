@@ -1,1 +1,1 @@
-msbuild Noef.SourceDistro.proj /t:PushNugetProd
+msbuild Noef.SourceDistro.proj /t:PushNugetDev

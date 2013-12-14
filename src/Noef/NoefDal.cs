@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -31,12 +32,14 @@ namespace Noef
 		/// </summary>
 		public IDbTransaction DefaultTransaction { get; set; }
 
-		public IList<IDbConnection> OpenedConnections { get; private set; } 
+		public ConcurrentDictionary<string, IDbConnection> OpenedConnections { get; set; } 
+		//public IList<IDbConnection> OpenedConnections { get; private set; } 
 
 		protected NoefDal()
 		{
 			m_uniqueDalKey = GetType().FullName;
-			OpenedConnections = new List<IDbConnection>();
+			//OpenedConnections = new List<IDbConnection>();
+			OpenedConnections = new ConcurrentDictionary<string, IDbConnection>();
 			DefaultTimeout = 30;
 		}
 
@@ -129,8 +132,16 @@ namespace Noef
 						throw new NotSupportedException("Your DbType (" + DbType + ") is not currently supported");
 				}
 				PerRequestStore.SetData(key, cn);
+				
 				cn.Open();
-				OpenedConnections.Add(cn);
+				bool added = OpenedConnections.TryAdd(key, cn);
+				// TODO: How to handle failure here? Could just mean that another thread already added it?
+				// What would you do in that case? Discard this one and use the one already added?
+				if (!added)
+				{
+					Exception ex = new Exception("NOefDal.GetConnection() was unable to add a new connection to the OpenedConnections dictionary...");
+					Trace.Write(ex);
+				}
 			}
 			return cn;
 		}
@@ -140,12 +151,16 @@ namespace Noef
 		/// </summary>
 		public void CloseConnections()
 		{
-			foreach(IDbConnection cn in OpenedConnections)
+			foreach(var pair in OpenedConnections)
 			{
+				string cnKey = pair.Key;
+				IDbConnection cn = pair.Value;
 				if (cn.State != ConnectionState.Closed)
 				{
 					try
 					{
+						// Clear the cache! Otherwise next request for this connection will returned the cached (& closed...) one = exception.
+						PerRequestStore.SetData(cnKey, null);
 						cn.Close();
 						cn.Dispose();
 					}

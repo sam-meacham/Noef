@@ -211,6 +211,16 @@ order by
 			ExcludedProperties = new string[0];
 		}
 
+		public override string ToString()
+		{
+			string s = "TableMapping: " + TableName;
+			if (TableNameOnly != ClassName)
+				s += " => " + ClassName;
+			if (!String.IsNullOrEmpty(BaseClass))
+				s += " : " + BaseClass;
+			return s;
+		}
+
 		private static string getPlainTableName(string tableName)
 		{
 			int ixDot = tableName.LastIndexOf(".", StringComparison.Ordinal);

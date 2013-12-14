@@ -56,7 +56,11 @@ namespace Noef.CodeGen
 			PrincipalKey = pkParts[1].Trim();
 
 			string dTableName = fkParts[0].Trim();
-			DependentTable = mappings.Single(m => String.Equals(m.TableName, dTableName, StringComparison.OrdinalIgnoreCase));
+			DependentTable = mappings.SingleOrDefault(m => String.Equals(m.TableName, dTableName, StringComparison.OrdinalIgnoreCase));
+
+			if (DependentTable == null)
+				throw new Exception("No table named \"" + dTableName + "\" found in your mappings");
+
 			DependentTable.AsDependent.Add(this);
 			DependentKey = fkParts[1].Trim();
 

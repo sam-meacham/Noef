@@ -21,7 +21,6 @@ namespace Noef
 	{
 		private string m_versionString;
 
-		private readonly IDictionary<string, IDbConnection> m_connections = new Dictionary<string, IDbConnection>();
 		public abstract string ConnectionStringName { get; }
 		public abstract NoefDbType DbType { get; }
 		private readonly string m_uniqueDalKey;
@@ -116,9 +115,9 @@ namespace Noef
 
 			// return a  cached one if we have it (local instance storage only - per dal instance)
 			IDbConnection cn;
-			if (m_connections.ContainsKey(key))
+			if (OpenedConnections.ContainsKey(key))
 			{
-				cn = m_connections[key];
+				cn = OpenedConnections[key];
 				return cn;
 			}
 
@@ -138,7 +137,6 @@ namespace Noef
 				default:
 					throw new NotSupportedException("Your DbType (" + DbType + ") is not currently supported");
 			}
-			m_connections.Add(key, cn);
 				
 			cn.Open();
 			bool added = OpenedConnections.TryAdd(key, cn);
@@ -159,14 +157,12 @@ namespace Noef
 		{
 			foreach(var pair in OpenedConnections)
 			{
-				string cnKey = pair.Key;
 				IDbConnection cn = pair.Value;
 				if (cn.State != ConnectionState.Closed)
 				{
 					try
 					{
 						// Clear the cache! Otherwise next request for this connection will returned the cached (& closed...) one = exception.
-						PerRequestStore.SetData(cnKey, null);
 						cn.Close();
 						cn.Dispose();
 					}

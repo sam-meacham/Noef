@@ -22,6 +22,8 @@ namespace Noef
 	public abstract class NoefDal : IDisposable
 	{
 		private static readonly IDictionary<string, string> s_connectionStrings = new Dictionary<string, string>();
+
+		private readonly IDictionary<string, IDbConnection> m_connections = new Dictionary<string, IDbConnection>();
 		public abstract string ConnectionStringName { get; }
 		public abstract NoefDbType DbType { get; }
 		private readonly string m_uniqueDalKey;
@@ -230,30 +232,35 @@ namespace Noef
 		{
 			if (String.IsNullOrEmpty(connectionStringName))
 				connectionStringName = ConnectionStringName;
-			string key = m_uniqueDalKey + "_cn_" + connectionStringName;
-			IDbConnection cn = (IDbConnection)PerRequestStore.GetData(key);
-			if (cn == null)
+			string key = m_uniqueDalKey + "_cn_" + connectionStringName; // FamiliaDal_cn_g_Adhoc
+
+			// return a  cached one if we have it (local instance storage only - per dal instance)
+			IDbConnection cn;
+			if (m_connections.ContainsKey(key))
 			{
-				string cnString = GetConnectionString(connectionStringName);
-				switch(DbType)
-				{
-					case NoefDbType.SqlServer2012:
-					case NoefDbType.SqlServer:
-						cn = new SqlConnection(cnString);
-						break;
+				cn = m_connections[key];
+				return cn;
+			}
+
+			string cnString = GetConnectionString(connectionStringName);
+			switch(DbType)
+			{
+				case NoefDbType.SqlServer2012:
+				case NoefDbType.SqlServer:
+					cn = new SqlConnection(cnString);
+					break;
 #if SQL_CE
-					case NoefDbType.SqlCE:
-						cn = new SqlCeConnection(cnString);
-						break;
+				case NoefDbType.SqlCE:
+					cn = new SqlCeConnection(cnString);
+					break;
 #endif
 
-					default:
-						throw new NotSupportedException("Your DbType (" + DbType + ") is not currently supported");
-				}
-				PerRequestStore.SetData(key, cn);
-				cn.Open();
-				OpenedConnections.Add(cn);
+				default:
+					throw new NotSupportedException("Your DbType (" + DbType + ") is not currently supported");
 			}
+			m_connections.Add(key, cn);
+			cn.Open();
+			OpenedConnections.Add(cn);
 			return cn;
 		}
 

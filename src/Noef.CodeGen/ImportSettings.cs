@@ -40,16 +40,6 @@ namespace Noef.CodeGen
 		// Post processed (not part of the settings file)
 		public IList<FkInfo> Fks { get; set; }
 
-		/// <summary>
-		/// When a base class is specified for your dal other than NoefDal, NoefGen normally
-		/// skips the generation of the noef distro (_Noef.cs), because the assumption is you
-		/// already have it (and that your specific base dal is already inheriting from it).
-		/// Certain situations will require you have a noef distro *anyway*.  This setting will
-		/// force it to generate, even if your base dal isn't "NoefDal".
-		/// It's set the noef-config.xml via the 
-		/// </summary>
-		public bool ForceGenNoefDistro { get; set; }
-
 		// The keys here are the names of FKs in the database.  The string tuple is the name of the pricipal and dependent property names that should be used, instead of just defaulting to the table name.
 		public Dictionary<string, Tuple<string, string>> PropertyNameHints = new Dictionary<string, Tuple<string, string>>();
 
@@ -148,16 +138,6 @@ namespace Noef.CodeGen
 			if (classElement != null)
 			{
 				DalBaseClassName = classElement.Attribute("base").ValueOrNull() ?? DalBaseClassName;
-
-				// if they specify a base class other than NoefDal, _Noef.cs will be empty (no noef distro is gen'd).
-				// If the user needs the distro still, this is the setting that forces it (and it's neighbor to the setting that affects it)
-				// example:
-				// <dal>
-				//     <class base="MyNamespace.CommonDalBase" forceGenNoefDistro="true">MyProjectDal</class>
-				//		...
-				// </dal>
-				string forceVal = classElement.Attribute("forceGenNoefDistro").ValueOrNull() ?? "false";
-				ForceGenNoefDistro = bool.Parse(forceVal);
 			}
 
 			DalNamespace = dal.Element(ns + "namespace").ValueOrNull() ?? DalNamespace;
@@ -335,16 +315,12 @@ namespace Noef.CodeGen
 				generators.Add(new RelatedPropertiesGenerator(fn_getWriter("_relatedProperties.txt"), this));
 			if (m_outputTypes.Contains(OutputType.RelationshipsConfig))
 				generators.Add(new RelationshipsConfigGenerator(fn_getWriter("_fks.txt"), this));
-			if (m_outputTypes.Contains(OutputType.NoefDistro))
-				generators.Add(new NoefDistroGenerator(fn_getWriter("_Noef.cs"), this, NoefNamespace));
 			if (m_outputTypes.Contains(OutputType.Dal))
 				generators.Add(new DalGenerator(fn_getWriter("_Dal.cs"), this));
 			if (m_outputTypes.Contains(OutputType.Metadata))
 				generators.Add(new MetadataGenerator(fn_getWriter("_Metadata.cs"), this));
 			if (m_outputTypes.Contains(OutputType.ConfigFile))
 				generators.Add(new NoefConfigGenerator(fn_getWriter("noef-config.xml"), this));
-			if (m_outputTypes.Contains(OutputType.HttpModule))
-				generators.Add(new HttpModuleGenerator(fn_getWriter("_DalHttpModule.cs"), this));
 			if (m_outputTypes.Contains(OutputType.Ui))
 				generators.Add(new JqUiGenerator(fn_getWriter("_ui.js"), this));
 			

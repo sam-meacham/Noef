@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -7,12 +8,9 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Security.Principal;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Web;
-using System.Web.Security;
 #if SQL_CE
 using System.Data.SqlServerCe;
 #endif
@@ -21,29 +19,13 @@ namespace Noef
 {
 	public abstract class NoefDal : IDisposable
 	{
-		private static readonly IDictionary<string, string> s_connectionStrings = new Dictionary<string, string>();
+		private string m_versionString;
 
 		private readonly IDictionary<string, IDbConnection> m_connections = new Dictionary<string, IDbConnection>();
 		public abstract string ConnectionStringName { get; }
 		public abstract NoefDbType DbType { get; }
 		private readonly string m_uniqueDalKey;
-		public static readonly object s_objSync = new object();
-
 		public int DefaultTimeout { get; set; }
-
-
-		// The IHttpModule will also populate these (as best as it can)
-		public string UserName { get; set; }
-		public string IPAddress { get; set; }
-		public string AppRoot { get; set; }
-		public IPrincipal PrincipalUser { get; set; }
-		public bool IsLocalhost { get; set; }
-
-		// Other properties that can be useful.  These can be set by override AuthorizeRequest() in your DAL implementation class.
-		// Otherwise they will just have null values and won't be used.
-		public object UserID { get; set; }
-		public bool IsDeveloper { get; set; }
-
 
 		/// <summary>
 		/// Can be assigned a transaction that will be used for ALL noef based queries.
@@ -51,12 +33,14 @@ namespace Noef
 		/// </summary>
 		public IDbTransaction DefaultTransaction { get; set; }
 
-		public IList<IDbConnection> OpenedConnections { get; private set; } 
+		public ConcurrentDictionary<string, IDbConnection> OpenedConnections { get; set; } 
+		//public IList<IDbConnection> OpenedConnections { get; private set; } 
 
 		protected NoefDal()
 		{
 			m_uniqueDalKey = GetType().FullName;
-			OpenedConnections = new List<IDbConnection>();
+			//OpenedConnections = new List<IDbConnection>();
+			OpenedConnections = new ConcurrentDictionary<string, IDbConnection>();
 			DefaultTimeout = 30;
 		}
 
@@ -65,135 +49,31 @@ namespace Noef
 			CloseConnections();
 		}
 
-		public virtual void Init(HttpApplication app)
+		public Assembly GetDalAssembly()
 		{
-			// stub method...
+			Assembly asm = GetType().Assembly;
+			return asm;
 		}
 
-		public virtual void AuthorizeRequest(HttpApplication app)
+		public string AsmFileVersionString()
 		{
-			if (app != null)
-			{
-				IPAddress = GetIPAddress();
-
-				AppRoot = app.Context.Request.ApplicationPath;
-				Debug.Assert(AppRoot != null);
-				if (!AppRoot.EndsWith("/"))
-					AppRoot += "/";
-
-				// we'll consider it localhost if the entire word is found with word boundaries in the hostname.
-				Regex rxLocal = new Regex(@"\blocalhost\b");
-				string hostname = app.Context.Request.Url.Host.ToLower();
-				IsLocalhost = rxLocal.IsMatch(hostname);
-				if (app.User != null)
-				{
-					PrincipalUser = app.User;
-					UserName = app.User.Identity.Name;
-				}
-			}
+			if (m_versionString != null)
+				return m_versionString;
+			Assembly asm = GetDalAssembly();
+			FileVersionInfo info = FileVersionInfo.GetVersionInfo(asm.Location);
+			m_versionString = info.ProductVersion;
+			return m_versionString;	
 		}
-
-		public virtual void EndRequest(HttpApplication app)
-		{
-			Dispose();
-		}
-
-#if !NET2 // Lazy<T> is .NET 4+
-		/// <summary>
-		/// setup() will be called right away, on a separate thread.
-		/// A Lazy{T} object is created, and fnValue() will be called when that lazy is evaluated.
-		/// But before fnValue() will be called, the separate thread that called setup() will be joined to the current (main) thread.
-		/// This guarantees that setup() FINISHES before fnValue() is called.
-		/// This is a convenience method for filling a specific kind of gap that occurs commonly enough that bundling it this way is nice.
-		/// </summary>
-		public static Lazy<T> ThreadLazyPattern<T>(Action setup, Func<T> fnValue)
-		{
-			// create a separate thread, where setup() is called right away
-			HttpContext mainThreadContext = HttpContext.Current;
-			Thread t = new Thread(() =>
-			{
-				// Need access to the DAL.  Note Noef hasn't been thread-safety tested or evaluated yet.
-				HttpContext.Current = mainThreadContext;
-				setup();
-			}) { Name = "ThreadLazyPattern-setup-" + typeof (T).Name };
-			t.Start();
-
-			// set up our wrapper value factory, that will join the "setup" thread in
-			Func<T> fnValueWrapper = () =>
-			                         {
-				                         t.Join();
-										 // call the actual fnValue function
-				                         T value = fnValue();
-				                         return value;
-			                         };
-
-			// set up the lazy object
-			// TODO: there is another constructor that takes a bool, "isThreadSafe" as a 2nd arg. Need to look that up.
-			Lazy<T> lazy = new Lazy<T>(fnValueWrapper);
-			return lazy;
-		}
-
-
-		/// <summary>
-		/// setup() will be called right away, on a separate thread.
-		/// A Lazy{T} object is created, and fnValue() will be called when that lazy is evaluated.
-		/// But before fnValue() will be called, the separate thread that called setup() will be joined to the current (main) thread.
-		/// This guarantees that setup() FINISHES before fnValue() is called.
-		/// This is a convenience method for filling a specific kind of gap that occurs commonly enough that bundling it this way is nice.
-		/// </summary>
-		public static Lazy<T> ThreadLazyPattern<T>(Action setup, ref T obj)
-		{
-			// create a separate thread, where setup() is called right away
-			HttpContext mainThreadContext = HttpContext.Current;
-			Thread t = new Thread(() =>
-			{
-				// Need access to the DAL.  Note Noef hasn't been thread-safety tested or evaluated yet.
-				HttpContext.Current = mainThreadContext;
-				setup();
-			}) { Name = "ThreadLazyPattern-setup-" + typeof (T).Name };
-			t.Start();
-
-			// TODO: Does this do what I want?
-			T obj2 = obj;
-
-			// set up our wrapper value factory, that will join the "setup" thread in
-			Func<T> fnValueWrapper = () =>
-			{
-				// make sure setup() has FINISHED (it has the responsibility of assigning obj)
-				t.Join();
-
-				// call the actual fnValue function
-				return obj2;
-			};
-
-			// set up the lazy object
-			// TODO: there is another constructor that takes a bool, "isThreadSafe" as a 2nd arg. Need to look that up.
-			Lazy<T> lazy = new Lazy<T>(fnValueWrapper);
-			return lazy;
-		}
-#endif
 
 		public virtual string GetConnectionString(string connectionStringName = null)
 		{
 			if (String.IsNullOrEmpty(connectionStringName))
 				connectionStringName = ConnectionStringName;
 
-			// dirty (non thread-safe check)
-			if (s_connectionStrings.ContainsKey(connectionStringName))
-				return s_connectionStrings[connectionStringName];
-
-			lock(s_objSync)
-			{
-				// thread-safe check
-				if (s_connectionStrings.ContainsKey(connectionStringName))
-					return s_connectionStrings[connectionStringName];
-
-				ConnectionStringSettings settings = ConfigurationManager.ConnectionStrings[connectionStringName];
-				if (settings == null)
-					throw new Exception("No connection string found with name " + connectionStringName);
-				s_connectionStrings.Add(connectionStringName, settings.ConnectionString);
-				return settings.ConnectionString;
-			}
+			ConnectionStringSettings settings = ConfigurationManager.ConnectionStrings[connectionStringName];
+			if (settings == null)
+				throw new Exception("No connection string found with name " + connectionStringName);
+			return settings.ConnectionString;
 		}
 
 		/// <summary>
@@ -259,8 +139,16 @@ namespace Noef
 					throw new NotSupportedException("Your DbType (" + DbType + ") is not currently supported");
 			}
 			m_connections.Add(key, cn);
+				
 			cn.Open();
-			OpenedConnections.Add(cn);
+			bool added = OpenedConnections.TryAdd(key, cn);
+			// TODO: How to handle failure here? Could just mean that another thread already added it?
+			// What would you do in that case? Discard this one and use the one already added?
+			if (!added)
+			{
+				Exception ex = new Exception("NOefDal.GetConnection() was unable to add a new connection to the OpenedConnections dictionary...");
+				Trace.Write(ex);
+			}
 			return cn;
 		}
 
@@ -269,12 +157,16 @@ namespace Noef
 		/// </summary>
 		public void CloseConnections()
 		{
-			foreach(IDbConnection cn in OpenedConnections)
+			foreach(var pair in OpenedConnections)
 			{
+				string cnKey = pair.Key;
+				IDbConnection cn = pair.Value;
 				if (cn.State != ConnectionState.Closed)
 				{
 					try
 					{
+						// Clear the cache! Otherwise next request for this connection will returned the cached (& closed...) one = exception.
+						PerRequestStore.SetData(cnKey, null);
 						cn.Close();
 						cn.Dispose();
 					}
@@ -288,67 +180,6 @@ namespace Noef
 			}
 			OpenedConnections.Clear();
 		}
-
-		public static string GetCompleteStackTrace(Exception ex)
-		{
-			if (ex == null)
-				return null;
-
-			StringBuilder sb = new StringBuilder();
-			while (ex != null)
-			{
-				sb.AppendLine("Type: " + ex.GetType().Name);
-				sb.AppendLine("Message: " + ex.Message);
-				sb.AppendLine("Stack Trace:");
-				sb.AppendLine(ex.StackTrace).AppendLine();
-				ex = ex.InnerException;
-				if (ex != null)
-					sb.AppendLine("Inner exception:");
-			}
-			return sb.ToString();
-		}
-
-
-		public static string GetIPAddress()
-		{
-			if (HttpContext.Current == null)
-				return null;
-
-			// Look for a proxy address first
-			string ip = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-
-			// If there is no proxy, get the standard remote address
-			if (ip == null)
-			{
-				ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-			}
-			else
-			{
-				if ((string.IsNullOrEmpty(ip) || ip.ToLower() == "unknown"))
-				{
-					ip = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-				}
-				else
-				{
-					ip = "from proxy  " + ip;
-				}
-			}
-			return ip;
-		}
-
-		/// <summary>
-		/// Checks to see if the current request can skip authorization, either because context.SkipAuthorization is true,
-		/// or because UrlAuthorizationModule.CheckUrlAccessForPrincipal() returns true for the current request/user/url.
-		/// </summary>
-		/// <returns></returns>
-		public bool SkipUrlAuth()
-		{
-			HttpContext context = HttpContext.Current;
-			string path = context.Request.AppRelativeCurrentExecutionFilePath;
-			Debug.Assert(path != null);
-			return context.SkipAuthorization || UrlAuthorizationModule.CheckUrlAccessForPrincipal(path, context.User, context.Request.RequestType);
-		}
-
 
 		public IDbTransaction NewTransaction(IDbConnection cn = null)
 		{
@@ -538,9 +369,11 @@ namespace Noef
 		// *** http://www.toptensoftware.com/petapoco/ ************************************
 		// ********************************************************************************
 
+// ReSharper disable StaticFieldInGenericType
 		private static readonly Regex rxColumns = new Regex(@"\A\s*SELECT\s+((?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|.)*?)(?<!,\s+)\bFROM\b", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
 		private static readonly Regex rxOrderBy = new Regex(@"\bORDER\s+BY\s+(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\w\(\)\.])+(?:\s+(?:ASC|DESC))?(?:\s*,\s*(?:\((?>\((?<depth>)|\)(?<-depth>)|.?)*(?(depth)(?!))\)|[\w\(\)\.])+(?:\s+(?:ASC|DESC))?)*", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
 		private static readonly Regex rxDistinct = new Regex(@"\ADISTINCT\s", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.Compiled);
+// ReSharper restore StaticFieldInGenericType
 
 		private static bool splitSqlForPaging(string originalQuery, out string sqlCount, out string columnsList, out string sqlOrderBy)
 		{

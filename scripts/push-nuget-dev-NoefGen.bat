@@ -1,0 +1,1 @@
+msbuild NoefGen.proj /t:PushNugetDev

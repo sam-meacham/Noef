@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Noef.CodeGen
 {
@@ -11,8 +10,7 @@ namespace Noef.CodeGen
 		/// <summary>
 		/// All of the type names in getClrPropertyTypeName() that are reference types
 		/// </summary>
-		private static readonly string[] REF_TYPES = new []
-		{
+		private static readonly string[] REF_TYPES = {
 			"object",
 			"string",
 			"byte[]",

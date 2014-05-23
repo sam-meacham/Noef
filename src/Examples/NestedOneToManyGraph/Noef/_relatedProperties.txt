@@ -1,0 +1,44 @@
+
+namespace Lam.Examples
+{
+	using System;
+	using System.Collections.Generic;
+
+	public partial class Parent
+	{
+		// FK_Thing_Parent
+		public IList<Thing> Thing { get; set; }
+
+	}
+}
+
+
+namespace Lam.Examples
+{
+	using System;
+	using System.Collections.Generic;
+
+	public partial class Thing
+	{
+		// FK_Thing_Parent (Thing.ParentID = Parent.ID)
+		public Parent Parent { get; set; }
+		// FK_ChildThing_Thing
+		public IList<ChildThing> ChildThing { get; set; }
+
+	}
+}
+
+
+namespace Lam.Examples
+{
+	using System;
+	using System.Collections.Generic;
+
+	public partial class ChildThing
+	{
+		// FK_ChildThing_Thing (ChildThing.ParentID = Thing.ID)
+		public Thing Thing { get; set; }
+
+	}
+}
+

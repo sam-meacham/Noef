@@ -24,13 +24,11 @@ Output types are:
 - RelatedProperties: create a text file that describes the FK relationships of your tables, as modeled in your DTOs.
 - RelationshipsConfig: create a text file with the xml markup you can put in your noef-config.xml to set up your FK relationships in the DTOs.
 - Metadata: create the _metadata.cs file that will contain the metadata for your sql tables (and how they map to your DTOs), and the hydrator functions that will transform raw SQL results into your .NET DTO types.
-- NoefDistro: generate the entire Noef codebase into a single redistributable .cs file (_Noef.cs)
 - Dal: Generate _Dal.cs, which is your singleton entry point for all your data access.
-- HttpModule: Generate an IHttpModule class you can put in your web.config for easy use from an ASP.NET application.
 
 Example:
 	// generate all types
-	NoefGen.exe --type=Dtos,RelatedProperties,RelationshipsConfig,Metadata,NoefDistro,Dal,HttpModule
+	NoefGen.exe --type=Dtos,RelatedProperties,RelationshipsConfig,Metadata,Dal
 ", v => outputTypes = v },
 
 				// A settings file (see noef-config.xsd for the xml schema)
@@ -48,7 +46,7 @@ Example:
 
 			// if they don't specify an output type, just run ALL output types
 			if (String.IsNullOrEmpty(outputTypes))
-				outputTypes = "Dtos,RelatedProperties,RelationshipsConfig,Metadata,NoefDistro,Dal,HttpModule,Ui";
+				outputTypes = "Dtos,RelatedProperties,RelationshipsConfig,Metadata,Dal,Ui";
 			if (String.IsNullOrEmpty(settingsFile))
 				settingsFile = "noef-config.xml";
 

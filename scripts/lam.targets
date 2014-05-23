@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="Clean">
+		<!-- TODO: What else to clean up?
+		<Delete Files="@(DestFiles)" /> etc
+		-->
+		<RemoveDir Directories="$(NupkgBasePath)" />
+		<MSBuild Projects="$(ProjFile)" Properties="Configuration=$(Configuration)" Targets="Clean"/>
+	</Target>
+
+
+	<!-- update version number in AssemblyInfo.cs files -->
+	<Target Name="UpdateAssemblyVersion" BeforeTargets="Build">
+		<!-- Set assembly version -->
+		<!-- Version using YearWeekDay and set the start of the week as a Sunday -->
+		<!--
+		<MSBuild.ExtensionPack.Framework.AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles1)" AssemblyBuildNumberType="YearWeekDay" FirstDayOfWeek="Sunday"/>
+		 -->
+		<Message Text="Updating AssemblyInfo files to version: $(LamVersion) for @(AssemblyInfoFiles->Count()) files" />
+		<Message Text="@(AssemblyInfoFiles)" />
+		<!--<MSBuild.ExtensionPack.Framework.AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)" AssemblyVersion="$(LamVersion)" AssemblyFileVersion="$(LamVersion)"/>-->
+	</Target>
+
+
+	<!-- Build the project -->
+	<Target Name="Build" DependsOnTargets="UpdateAssemblyVersion;UpdateAssemblyInfoFiles">
+		<Message Text="Version number (before build): $(LamVersion)" />
+		<MSBuild Projects="$(ProjFile)" Properties="Configuration=$(Configuration)" Targets="Build"/>
+	</Target>
+
+
+	<!-- Copy *.cs files in the proj dir to /deploy -->
+	<Target Name="CopySourceFilesForSourceDistro" DependsOnTargets="Build" AfterTargets="Build" Condition=" '$(DoSourceDistro)' == 'true' ">
+		<ItemGroup>
+			<SourceDistroSrcFiles Include="$(ProjSrcDir)**\*.cs" Exclude="@(AssemblyInfoFiles);$(ProjSrcDir)obj\**\*" />
+			<!--<FilesToDelete Include="$(NupkgBasePath)**\*" />-->
+		</ItemGroup>
+		
+		<Message Text="Deleting $(NupkgBasePath)" />
+		<!--<Delete Files="@(FilesToDelete)" />-->
+		<RemoveDir Directories="$(NupkgBasePath)" ContinueOnError="true" />
+
+		<Copy SourceFiles="@(SourceDistroSrcFiles)"
+			  DestinationFiles="@(SourceDistroSrcFiles->'$(NupkgContentBasePath)$(NupkgContentSubfoldername)%(RecursiveDir)%(Filename)%(Extension)')" />
+	</Target>
+
+
+	<!-- pack nuget -->
+	<Target Name="PackNuget" DependsOnTargets="Build;CopySourceFilesForSourceDistro">
+		<!-- delete any old .nupkg files to avoid any confusion -->
+		<Delete Files="@(NupkgFiles)" />
+	
+		<!-- Copy files before nuget pack (readme, license) -->
+		<Copy SourceFiles="$(LicenseFile);$(ReadmeFile)" DestinationFolder="$(NupkgBasePath)" />
+
+		<!-- nuget pack -->
+		<Exec Command="NuGet.exe pack $(NuspecFile) -BasePath $(NupkgBasePath) -Verbosity detailed -Version $(LamVersion)" />
+
+		<!-- dynamic property group to update the output .nupkg file -->
+		<PropertyGroup>
+			<NupkgOutputFile>$(NuspecFile.Replace('.nuspec', '.$(LamVersion).nupkg'))</NupkgOutputFile>
+		</PropertyGroup>
+	</Target>
+
+
+	<!-- push nuget locallly -->
+	<Target Name="PushNugetLocal" DependsOnTargets="PackNuget">
+		<Message Text="Pushing Nupkg file locally: $(NupkgOutputFile) => $(NugetLocalUrl)" />
+		<Exec Command="NuGet.exe push $(NupkgOutputFile) -Source $(NugetLocalUrl)" />
+	</Target>
+
+	
+	<!-- push nuget dev -->
+	<Target Name="PushNugetDev" DependsOnTargets="PackNuget">
+		<Message Text="Pushing Nupkg file to dev: $(NupkgOutputFile) => $(NugetDevUrl)" />
+		<Exec Command="NuGet.exe push $(NupkgOutputFile) -Source $(NugetDevUrl)" />
+	</Target>
+
+
+	<!-- push nuget prod -->
+	<Target Name="PushNugetProd" DependsOnTargets="PackNuget">
+		<Message Text="Pushing Nupkg file PROD: $(NupkgOutputFile) => $(NugetProdUrl)" />
+		<Exec Command="NuGet.exe push $(NupkgOutputFile) -Source $(NugetProdUrl)" />
+	</Target>
+
+	<!-- public web project to dev -->
+	<Target Name="PubWebDev" DependsOnTargets="Build">
+	</Target>
+</Project>

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Noef.CustomTool")]
+[assembly: AssemblyTitle("NestedOneToManyGraph")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Noef.CustomTool")]
+[assembly: AssemblyProduct("NestedOneToManyGraph")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("976424a4-be37-4c83-8dd8-4f601637ae96")]
+[assembly: Guid("a75ce90a-b7e0-4f8f-adf2-d703d4cf3975")]
 
 // Version information for an assembly consists of the following four values:
 //

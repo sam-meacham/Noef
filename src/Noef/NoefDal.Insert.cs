@@ -12,6 +12,66 @@ namespace Noef
 	public abstract partial class NoefDal
 	{
 		/// <summary>
+		/// NOTE! Use InsertBlacklist instead, this is the old way
+		/// </summary>
+		public void Insert<T>(T obj,
+			IDictionary<string, string> columnInsertOverrides,
+			IEnumerable<string> excludedColumns,
+			IDbConnection cn                 = null,
+			Action<IDbCommand> beforeExecute = null,
+			CommandType commandType          = CommandType.Text,
+			IDbTransaction tx                = null,
+			string newRecordIdSelector       = "SCOPE_IDENTITY()",
+			int timeout                      = -1)
+		{
+			InsertBlacklist(obj, excludedColumns, null, cn, beforeExecute, tx, newRecordIdSelector, timeout);
+		}
+
+
+		/// <summary>
+		/// Will INSERT or UPDATE depending on if ID of the obj is &lt;=0, using blacklist with nothing
+		/// specified (so all columns, PKs ignored, IDENTITY handled correctly for INSERTs)
+		/// </summary>
+		public void SimpleSave<T>(T obj)
+		{
+			var tmeta = TableMetadata.For<T>();
+			object pkValue = tmeta.Pk.Property.GetValue(obj);
+			if (tmeta.Pk.Property.PropertyType == typeof(int))
+			{
+				int currentID = (int)pkValue;
+				if (currentID <= 0)
+				{
+					// insert
+					InsertBlacklist(obj);
+				}
+				else
+				{
+					// update
+					UpdateBlacklist(obj);
+				}
+			}
+			else
+			{
+				throw new Exception("Only int type supported");
+			}
+		}
+
+
+
+		public void InsertWhitelist<T>(T obj,
+			IEnumerable<string> whitelistColumns,
+			IDictionary<string, string> columnInsertOverrides = null,
+			IDbConnection cn                                  = null,
+			Action<IDbCommand> beforeExecute                  = null,
+			IDbTransaction tx                                 = null,
+			string newRecordIdSelector                        = "SCOPE_IDENTITY()",
+			int timeout                                       = -1)
+		{
+			string pkColumn = TableMetadata.For<T>().Pk.Name;
+			InsertWhitelistByKey(obj, pkColumn, whitelistColumns, columnInsertOverrides, cn, beforeExecute, tx, newRecordIdSelector, timeout);
+		}
+
+		/// <summary>
 		/// Constructs and executes an INSERT statement based on the table specified by T (using the column metadata).
 		/// The values used for the insert will be taken from "obj".
 		/// Since not all tables have an IDENTITY PK, you'll have to exclude the PK column if you don't want it in the column list or VALUES() values.
@@ -19,7 +79,7 @@ namespace Noef
 		/// Any params specified in the overrides can be populated using the beforeExecute Action.
 		/// This returns the same "obj" that was passed in, but with all properties updated to reflect their current values in the database (so if you have an IDENTITY PK field, you'll have the value now).
 		/// </summary>
-		public void InsertWhitelist<T>(T obj,
+		public void InsertWhitelistByKey<T>(T obj,
 			string pkColumn,
 			IEnumerable<string> whitelistColumns,
 			IDictionary<string, string> columnInsertOverrides = null,
@@ -110,6 +170,19 @@ namespace Noef
 			}
 		}
 
+		public void InsertBlacklist<T>(T obj,
+			IEnumerable<string> excludedColumns               = null,
+			IDictionary<string, string> columnInsertOverrides = null,
+			IDbConnection cn                                  = null,
+			Action<IDbCommand> beforeExecute                  = null,
+			IDbTransaction tx                                 = null,
+			string newRecordIdSelector                        = "SCOPE_IDENTITY()",
+			int timeout                                       = -1)
+		{
+			string pkColumn = TableMetadata.For<T>().Pk.Name;
+			InsertBlacklistByKey(obj, pkColumn, excludedColumns, columnInsertOverrides, cn, beforeExecute, tx, newRecordIdSelector, timeout);
+		}
+
 
 		/// <summary>
 		/// Constructs and executes an INSERT statement based on the table specified by T (using the column metadata).
@@ -119,8 +192,8 @@ namespace Noef
 		/// Any params specified in the overrides can be populated using the beforeExecute Action.
 		/// This returns the same "obj" that was passed in, but with all properties updated to reflect their current values in the database (so if you have an IDENTITY PK field, you'll have the value now).
 		/// </summary>
-		public void InsertBlacklist<T>(T obj,
-			string pkColumn,
+		public void InsertBlacklistByKey<T>(T obj,
+			string pkColumn                                   = null,
 			IEnumerable<string> excludedColumns               = null,
 			IDictionary<string, string> columnInsertOverrides = null,
 			IDbConnection cn                                  = null,

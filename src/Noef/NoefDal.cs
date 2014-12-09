@@ -242,10 +242,6 @@ namespace Noef
 				return record;
 			}
 		}
-		// ********************************************************************************
-		// *** CRUD helpers (select, insert, update, delete) ******************************
-		// ********************************************************************************
-
 
 		public void EnsureColumnsExist<T>(IEnumerable<string> columns)
 		{
@@ -256,8 +252,6 @@ namespace Noef
 					throw new Exception("Column \"" + namedColumn + "\" does not exist in table " + tmeta.Name);
 			}
 		}
-
-
 
 	}
 }

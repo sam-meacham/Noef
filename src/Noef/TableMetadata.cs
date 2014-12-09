@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Linq.Expressions;
 #if !NET2
 using System.Collections.Concurrent;
 #endif
@@ -346,6 +347,25 @@ namespace Noef
 		{
 			return String.Join(",", GetColumns<T>().Select(col => col.Name).ToArray());
 		}
+
+
+		public static string[] Cols<T>(Expression<Func<T, object[]>> properties)
+		{
+			string[] propNames = ReflectionHelper.GetPropertyNames(properties);
+			string[] colNames = propNames.Join(GetColumns<T>(), propName => propName, col => col.Property.Name,
+				(propName, col) => col.Name /* the DB name */).ToArray();
+			return colNames;
+		}
+
+		public static string Col<T>(Expression<Func<T, object>> property)
+		{
+			string propName = ReflectionHelper.GetPropertyName(property);
+			ColumnMetadata col = GetColumns<T>().Single(c => c.Property.Name == propName);
+			return col.Name;
+		}
+
+
+
 
 		/// <summary>
 		/// Returns a comma separated list of all the columns in the table (as a single string) for use in a SELECT statement.

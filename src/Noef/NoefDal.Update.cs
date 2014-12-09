@@ -13,6 +13,49 @@ namespace Noef
 	{
 
 		/// <summary>
+		/// NOTE! Should use UpdateBlacklist instead (this is the old way)
+		/// </summary>
+		public void Update<T>(T obj,
+			IDictionary<string, string> columnUpdateOverrides,
+			IEnumerable<string> excludedColumns,
+			IDbConnection cn                 = null,
+			Action<IDbCommand> beforeExecute = null,
+			IDbTransaction tx                = null,
+			int timeout                      = -1)
+		{
+			UpdateBlacklist(obj, excludedColumns, columnUpdateOverrides, cn, beforeExecute, tx, timeout);
+		}
+
+
+		/// <summary>
+		/// NOTE! Should use UpdateWhitelist instead (this is the old way)
+		/// This one does have a columnUpdateOverrides param (probably left out on accident originally)
+		/// </summary>
+		public void Update<T>(T obj,
+			IEnumerable<string> whitelistColumns,
+			IDbConnection cn                 = null,
+			Action<IDbCommand> beforeExecute = null,
+			IDbTransaction tx                = null,
+			int timeout                      = -1)
+		{
+			IDictionary<string, string> columnUpdateOverrides = null;
+			UpdateWhitelist(obj, whitelistColumns, null, cn, beforeExecute, tx, timeout);
+		}
+
+
+		public void UpdateBlacklist<T>(T obj,
+			IEnumerable<string> excludedColumns               = null,
+			IDictionary<string, string> columnUpdateOverrides = null,
+			IDbConnection cn                                  = null,
+			Action<IDbCommand> beforeExecute                  = null,
+			IDbTransaction tx                                 = null,
+			int timeout                                       = -1)
+		{
+			string pkColumn = TableMetadata.For<T>().Pk.Name;
+			UpdateBlacklistByKey(obj, pkColumn, excludedColumns, columnUpdateOverrides, cn, beforeExecute, tx, timeout);
+		}
+
+		/// <summary>
 		/// Constructs and executes an UPDATE statement based on the table specified by T (using the column metadata).
 		/// A single row will be updated using a WHERE clause based on the pkColumn name (the value will be taken from the obj parameter, getting the correct
 		/// property's value, also based on the value of pkColumn).
@@ -36,7 +79,7 @@ namespace Noef
 		/// <param name="tx"> </param>
 		/// <param name="timeout"></param>
 		/// <returns>The same "obj" that was passed in, but with all its properties updated to reflect current values in the database (fields only, no collections. This is not an ORM, duh)</returns>
-		public void UpdateBlacklist<T>(T obj,
+		public void UpdateBlacklistByKey<T>(T obj,
 			string keyColumn                                  = null,
 			IEnumerable<string> excludedColumns               = null,
 			IDictionary<string, string> columnUpdateOverrides = null,
@@ -121,6 +164,19 @@ namespace Noef
 		}
 
 
+		public void UpdateWhitelist<T>(T obj,
+			IEnumerable<string> whitelistColumns              = null,
+			IDictionary<string, string> columnUpdateOverrides = null,
+			IDbConnection cn                                  = null,
+			Action<IDbCommand> beforeExecute                  = null,
+			IDbTransaction tx                                 = null,
+			int timeout                                       = -1)
+		{
+			string pkColumn = TableMetadata.For<T>().Pk.Name;
+			UpdateWhitelistByKey(obj, pkColumn, whitelistColumns, columnUpdateOverrides, cn, beforeExecute, tx, timeout);
+		}
+
+
 		/// <summary>
 		/// Constructs and executes an UPDATE statement based on the table specified by T (using the column metadata).
 		/// A single row will be updated using a WHERE clause based on the pkColumn name (taken from the TableMetadata.Pk entry)
@@ -138,7 +194,7 @@ namespace Noef
 		/// <param name="timeout"></param>
 		/// <returns>The same "obj" that was passed in, but with all its properties updated to reflect current values in the database, including columns that were
 		/// not in the update statement (triggers, who knows)</returns>
-		public void UpdateWhitelist<T>(T obj,
+		public void UpdateWhitelistByKey<T>(T obj,
 			string keyColumn                                  = null,
 			IEnumerable<string> whitelistColumns              = null,
 			IDictionary<string, string> columnUpdateOverrides = null,

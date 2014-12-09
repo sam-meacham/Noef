@@ -21,6 +21,7 @@ namespace Noef.CodeGen
 
 		// Code generation settings
 		public string OutputFolder { get; set; }
+		public string DtoOutputFolder { get; set; }
 		public string DalConnectionName { get; set; }
 		public string NoefNamespace { get; set; }
 		public string DtoNamespace { get; set; }
@@ -49,6 +50,7 @@ namespace Noef.CodeGen
 		public ImportSettings()
 		{
 			OutputFolder = Environment.CurrentDirectory;
+			DtoOutputFolder = Environment.CurrentDirectory;
 			m_outputTypes = new List<OutputType>(); // if empty, will process all types
 			DalNamespace = "YourNamespace";
 			NoefNamespace = null; // will default to the DAL's namespace
@@ -70,6 +72,7 @@ namespace Noef.CodeGen
 		{
 			// wherever this noef-config.xml is, that's where we want to output the files as well.
 			OutputFolder = Path.GetDirectoryName(file);
+			DtoOutputFolder = Path.GetDirectoryName(file);
 
 			// read the config file and apply the settings
 			string configXml = File.ReadAllText(file);
@@ -150,7 +153,10 @@ namespace Noef.CodeGen
 
 			// <dtos>
 			if (dtos != null)
+			{
 				DtoNamespace = dtos.Element(ns + "namespace").ValueOrNull();
+				DtoOutputFolder = dtos.Attribute("output").ValueOrNull() ?? DtoOutputFolder;
+			}
 			DtoNamespace = DtoNamespace ?? DalNamespace;
 
 			// <metadata>
@@ -309,8 +315,14 @@ namespace Noef.CodeGen
 				};
 
 			List<CodeGeneratorBase> generators = new List<CodeGeneratorBase>();
+
+			// DTOs might go to a different place...
+			string dtosPath = Path.Combine(DtoOutputFolder, "_Dtos.cs");
+			var dtoWriter = new StreamWriter(dtosPath);
+
 			if (m_outputTypes.Contains(OutputType.Dtos))
-				generators.Add(new DtoGenerator(fn_getWriter("_Dtos.cs"), this));
+				generators.Add(new DtoGenerator(dtoWriter, this));
+
 			if (m_outputTypes.Contains(OutputType.RelatedProperties))
 				generators.Add(new RelatedPropertiesGenerator(fn_getWriter("_relatedProperties.txt"), this));
 			if (m_outputTypes.Contains(OutputType.RelationshipsConfig))
